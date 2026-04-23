@@ -1,0 +1,115 @@
+# AppRoute Public API SDK for Python
+
+Official Python SDK for [AppRoute Public API](https://api.approute.io).
+
+## Installation
+
+```bash
+pip install approute-public-api-sdk
+```
+
+## Quick Start
+
+```python
+from approute import AppRouteClient
+
+client = AppRouteClient(api_key="sk_live_...")
+
+# List products
+products = client.services.list()
+for product in products.items:
+    print(f"{product.name} ({product.type})")
+
+# Get a product
+product = client.services.get("product-uuid")
+
+# Create an order
+order = client.orders.create(
+    orders_type="shop",
+    reference_id="my-unique-ref",
+    item_id="item-uuid",
+    quantity=1,
+)
+print(f"Order {order.transaction_uuid}: {order.status}")
+
+# Check balances
+accounts = client.accounts.balances()
+for acc in accounts.items:
+    print(f"{acc.currency}: {acc.available}")
+
+# Fund your account
+methods = client.funds.methods()
+invoice = client.funds.create_invoice(method_code="USDT_TRC20", amount=100.0)
+print(f"Send {invoice.amount_expected} to {invoice.address}")
+
+# Steam currency rates
+rates = client.steam_currency.rates(quotes=["RUB", "KZT"])
+
+client.close()
+```
+
+## Async Usage
+
+```python
+import asyncio
+from approute import AsyncAppRouteClient
+
+async def main():
+    async with AsyncAppRouteClient(api_key="sk_live_...") as client:
+        products = await client.services.list()
+        print(f"Found {len(products.items)} products")
+
+asyncio.run(main())
+```
+
+## Configuration
+
+```python
+client = AppRouteClient(
+    api_key="sk_live_...",
+    base_url="https://api.approute.io/api/v1",  # default
+    timeout=30.0,       # seconds, default 30
+    max_retries=3,      # default 3 (retries on 429/5xx)
+)
+```
+
+## Error Handling
+
+```python
+from approute import AppRouteClient, NotFoundError, RateLimitedError, ApiError
+
+client = AppRouteClient(api_key="sk_live_...")
+
+try:
+    product = client.services.get("nonexistent-id")
+except NotFoundError as e:
+    print(f"Not found: {e.message} (trace: {e.trace_id})")
+except RateLimitedError as e:
+    print(f"Rate limited: {e.message}")
+except ApiError as e:
+    print(f"API error [{e.code}]: {e.message}")
+    for field_err in e.errors:
+        print(f"  {field_err.field}: {field_err.message}")
+```
+
+### Error Hierarchy
+
+- `AppRouteError` — base for all SDK errors
+  - `NetworkError` — connection/timeout errors
+  - `ApiError` — API returned an error response
+    - `ValidationError` — 422, validation failed
+    - `UnauthorizedError` — 401, invalid API key
+    - `ForbiddenError` — 403, insufficient scopes
+    - `NotFoundError` — 404
+    - `ConflictError` — 409
+    - `RateLimitedError` — 429
+    - `OutOfStockError` — 422, product out of stock
+    - `InsufficientFundsError` — 422, not enough balance
+    - `UpstreamError` — 502
+    - `InternalError` — 500
+
+## Requirements
+
+- Python 3.10+
+- httpx
+- pydantic >= 2.0
