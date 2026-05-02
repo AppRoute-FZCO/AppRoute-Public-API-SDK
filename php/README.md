@@ -1,6 +1,11 @@
 # AppRoute Public API SDK for PHP
 
-Official PHP SDK for [AppRoute Public API](https://api.approute.io).
+Official PHP SDK for [AppRoute Public API](https://approute.io).
+
+Use `https://approute.io/api/v1` for international clients and
+`https://approute.ru/api/v1` for Russian clients. API keys are available in
+the matching dashboard: `https://approute.io/dashboard` or
+`https://approute.ru/dashboard`.
 
 ## Installation
 
@@ -55,9 +60,15 @@ $rates = $client->steamCurrency->rates(quotes: ['RUB', 'KZT']);
 ```php
 $client = new AppRouteClient(
     apiKey: 'sk_live_...',
-    baseUrl: 'https://api.approute.io/api/v1',  // default
+    baseUrl: 'https://approute.io/api/v1',  // default
     timeout: 30.0,       // seconds
     maxRetries: 3,       // retries on 429/5xx
+);
+
+// Russian clients
+$client = new AppRouteClient(
+    apiKey: 'sk_live_...',
+    baseUrl: 'https://approute.ru/api/v1',
 );
 ```
 

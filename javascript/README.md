@@ -2,6 +2,11 @@
 
 Official JavaScript/TypeScript SDK for the AppRoute Public API.
 
+Use `https://approute.io/api/v1` for international clients and
+`https://approute.ru/api/v1` for Russian clients. API keys are available in
+the matching dashboard: `https://approute.io/dashboard` or
+`https://approute.ru/dashboard`.
+
 ## Requirements
 
 - **Node.js 18+** (uses native `fetch`)
@@ -84,6 +89,12 @@ const client = new AppRouteClient({
   baseUrl: "https://...",         // Optional: custom base URL
   timeout: 30000,                 // Optional: request timeout in ms (default: 30000)
   maxRetries: 3,                  // Optional: max retries on 429/5xx (default: 3)
+});
+
+// Russian clients
+const ruClient = new AppRouteClient({
+  apiKey: "sk_live_...",
+  baseUrl: "https://approute.ru/api/v1",
 });
 ```
 

@@ -1,6 +1,6 @@
 # AppRoute Public API SDK
 
-Official SDK libraries for [AppRoute Public API](https://api.approute.io) — available in Python, JavaScript/TypeScript, PHP, and Go.
+Official SDK libraries for [AppRoute Public API](https://approute.io) — available in Python, JavaScript/TypeScript, PHP, and Go.
 
 ## Available SDKs
 
@@ -15,10 +15,23 @@ Official SDK libraries for [AppRoute Public API](https://api.approute.io) — av
 
 All SDKs follow the same pattern:
 
-1. Get your API key from the [AppRoute Dashboard](https://lk.approute.io)
+1. Get your API key from the AppRoute Dashboard:
+   - International clients: [approute.io/dashboard](https://approute.io/dashboard)
+   - Russian clients: [approute.ru/dashboard](https://approute.ru/dashboard)
 2. Install the SDK for your language
 3. Initialize the client with your API key
 4. Call API methods
+
+## Regional Domains
+
+Use the `.io` domain for international clients and the `.ru` domain for Russian clients:
+
+| Region | Dashboard | API Base URL |
+|--------|-----------|--------------|
+| International | `https://approute.io/dashboard` | `https://approute.io/api/v1` |
+| Russia | `https://approute.ru/dashboard` | `https://approute.ru/api/v1` |
+
+The SDKs default to the international API endpoint. Russian clients should pass the `.ru` API base URL in client configuration.
 
 ## API Coverage
 

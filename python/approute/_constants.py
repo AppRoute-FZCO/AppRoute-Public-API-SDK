@@ -1,1 +1,1 @@
-DEFAULT_BASE_URL = "https://api.approute.io/api/v1"
+DEFAULT_BASE_URL = "https://approute.io/api/v1"

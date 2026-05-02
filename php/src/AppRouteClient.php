@@ -13,7 +13,7 @@ use AppRoute\Sdk\Resources\SteamCurrencyResource;
 
 class AppRouteClient
 {
-    private const DEFAULT_BASE_URL = 'https://api.approute.io/api/v1';
+    private const DEFAULT_BASE_URL = 'https://approute.io/api/v1';
 
     public readonly ServicesResource $services;
     public readonly OrdersResource $orders;

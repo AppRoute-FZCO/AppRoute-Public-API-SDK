@@ -1,7 +1,12 @@
 # AppRoute Public API SDK for Go
 
-Official Go SDK for the [AppRoute Public API](https://api.approute.io). Zero external
+Official Go SDK for the [AppRoute Public API](https://approute.io). Zero external
 dependencies -- only the Go standard library is used.
+
+Use `https://approute.io/api/v1` for international clients and
+`https://approute.ru/api/v1` for Russian clients. API keys are available in
+the matching dashboard: `https://approute.io/dashboard` or
+`https://approute.ru/dashboard`.
 
 ## Requirements
 
@@ -62,6 +67,11 @@ client := approute.NewClient("sk_live_...",
 	approute.WithBaseURL("https://custom-api.example.com/api/v1"),
 	approute.WithTimeout(10*time.Second),
 	approute.WithMaxRetries(5),
+)
+
+// Russian clients
+client := approute.NewClient("sk_live_...",
+	approute.WithBaseURL("https://approute.ru/api/v1"),
 )
 ```
 

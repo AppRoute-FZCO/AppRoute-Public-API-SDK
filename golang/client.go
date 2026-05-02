@@ -9,7 +9,7 @@ import (
 )
 
 // DefaultBaseURL is the default AppRoute API base URL.
-const DefaultBaseURL = "https://api.approute.io/api/v1"
+const DefaultBaseURL = "https://approute.io/api/v1"
 
 // Client is the top-level entry point for the AppRoute Public API SDK.
 //

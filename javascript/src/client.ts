@@ -5,12 +5,12 @@ import { OrdersResource } from "./resources/orders.js";
 import { ServicesResource } from "./resources/services.js";
 import { SteamCurrencyResource } from "./resources/steamCurrency.js";
 
-const DEFAULT_BASE_URL = "https://api.approute.io/api/v1";
+const DEFAULT_BASE_URL = "https://approute.io/api/v1";
 
 export interface AppRouteClientOptions {
   /** Your API key (e.g. "sk_live_..."). */
   apiKey: string;
-  /** Base URL for the API. Defaults to "https://api.approute.io/api/v1". */
+  /** Base URL for the API. Defaults to "https://approute.io/api/v1". */
   baseUrl?: string;
   /** Request timeout in milliseconds. Defaults to 30000 (30 seconds). */
   timeout?: number;

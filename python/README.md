@@ -1,6 +1,11 @@
 # AppRoute Public API SDK for Python
 
-Official Python SDK for [AppRoute Public API](https://api.approute.io).
+Official Python SDK for [AppRoute Public API](https://approute.io).
+
+Use `https://approute.io/api/v1` for international clients and
+`https://approute.ru/api/v1` for Russian clients. API keys are available in
+the matching dashboard: `https://approute.io/dashboard` or
+`https://approute.ru/dashboard`.
 
 ## Installation
 
@@ -67,9 +72,15 @@ asyncio.run(main())
 ```python
 client = AppRouteClient(
     api_key="sk_live_...",
-    base_url="https://api.approute.io/api/v1",  # default
+    base_url="https://approute.io/api/v1",  # default
     timeout=30.0,       # seconds, default 30
     max_retries=3,      # default 3 (retries on 429/5xx)
+)
+
+# Russian clients
+client = AppRouteClient(
+    api_key="sk_live_...",
+    base_url="https://approute.ru/api/v1",
 )
 ```
 
