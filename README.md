@@ -53,6 +53,46 @@ All API responses use a unified envelope format. The SDKs automatically:
 - Unwrap successful responses, returning just the `data` field
 - Throw/return typed errors for failed responses with `code`, `message`, `traceId`, and field-level `errors`
 
+## Changelog
+
+### Breaking change (2026-05): `POST /orders` no longer returns 429 for API-key spend caps
+
+**What changed.** `POST /api/v1/orders` previously returned HTTP 429
+`LIMIT_REACHED` in two structurally different cases:
+
+1. A genuine per-window rate-limit (Public-API or upstream shop-service).
+2. The API key's static `transactionLimit` could not accommodate the order.
+
+These are now disambiguated:
+
+| Case | HTTP | `statusCode` | `errorCode` | Retryable? |
+|------|------|--------------|-------------|------------|
+| Per-window rate-limit | `429` | `LIMIT_REACHED` (8) | — | Yes — back-off retry |
+| API-key spend cap | `409` | `API_KEY_LIMIT_EXCEEDED` (13) | `api_key_transaction_limit_exceeded` | **No** — raise the cap or reset `transactionUsed` |
+
+**Migration.** If your application had special handling on HTTP 429
+`LIMIT_REACHED` for the "API key transaction limit exhausted" case
+(typically: stop retrying, surface to operator, page support), move that
+branch onto HTTP 409 with
+`errorCode === "api_key_transaction_limit_exceeded"`. Keep your existing
+back-off path on HTTP 429 `LIMIT_REACHED` — it is now strictly the
+per-window rate-limit signal.
+
+The new error envelope's `statusMessage` for the spend-cap path includes
+the attempted amount, the remaining headroom and the configured limit so
+operators can act on it directly:
+
+```
+Order amount 0.5 USD exceeds api key remaining limit 0.2 of 1.0
+```
+
+The control-plane representation of an API key now also exposes
+`transactionRemaining` (`transactionLimit - transactionUsed`, or `null`
+when no limit is set). Use it instead of `status` to decide whether a
+key can serve an order of expected size — a key with `status="active"`
+can still refuse new orders with HTTP 409 if its remaining headroom is
+below the quoted amount.
+
 ## License
 
 MIT
