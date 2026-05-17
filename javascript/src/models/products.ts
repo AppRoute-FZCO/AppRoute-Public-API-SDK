@@ -82,3 +82,44 @@ export interface ProductStockResponse {
   productId: string;
   items: ProductStockItem[];
 }
+
+// ---------------------------------------------------------------------------
+// Per-item lookup endpoints
+//   GET  /services/{serviceId}/items/{itemId}
+//   POST /services/items/lookup
+// JSON field names mirror the backend ItemLookup* schemas verbatim.
+// ---------------------------------------------------------------------------
+
+/** One `(serviceId, itemId)` pair inside a batch lookup request. */
+export interface ItemLookupRequestItem {
+  serviceId: string;
+  itemId: string;
+}
+
+/** Request body for `POST /services/items/lookup`. */
+export interface ItemLookupRequest {
+  items: ItemLookupRequestItem[];
+}
+
+/**
+ * One row in the batch-lookup response. Always present per input pair,
+ * in the same order as the request.
+ */
+export interface ItemLookupRow {
+  serviceId: string;
+  itemId: string;
+  found: boolean;
+  /** The denomination if `found === true`, otherwise `null`. */
+  item: ProductItem | null;
+  /** Error code such as `"service_not_found"` or `"item_not_found"` when `found === false`. */
+  error: string | null;
+}
+
+/**
+ * Response body for `POST /services/items/lookup`.
+ * `items` is in the same order as the request — callers can `zip()`
+ * request and response without re-keying.
+ */
+export interface ItemLookupResponse {
+  items: ItemLookupRow[];
+}

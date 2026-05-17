@@ -1,3 +1,12 @@
+# TODO(openapi-coverage): this spec is incomplete. The /services paths
+# (GET /services, GET /services/{id}, GET /services/{id}/stock, the new
+# GET /services/{service_id}/items/{item_id}, and POST /services/items/lookup)
+# and the /orders paths are NOT yet described here, even though the
+# corresponding Product/ProductItem/PurchaseRequest schemas already are.
+# Until a dedicated catch-up PR lands the missing operations and rewires
+# them to the new ItemLookup* schemas, treat this file as a SCHEMA
+# reference only, not a complete contract. The four language SDKs are the
+# source of truth for the operation set.
 openapi: 3.1.0
 info:
   title: AppRoute Public API (Data Plane)

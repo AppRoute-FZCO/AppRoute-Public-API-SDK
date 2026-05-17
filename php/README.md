@@ -31,6 +31,26 @@ foreach ($products as $product) {
 // Get a product
 $product = $client->services->get('product-uuid');
 
+// Get a single denomination/item directly
+$item = $client->services->getItem('service-uuid', 'item-uuid');
+echo "{$item->id}: {$item->price} {$item->currency}\n";
+
+// Batch lookup up to 100 (serviceId, itemId) pairs in one round-trip.
+// The response preserves input order; each row has found + item or error.
+use AppRoute\Sdk\Models\ItemLookupRequestItem;
+
+$resp = $client->services->lookupItems([
+    new ItemLookupRequestItem('service-uuid-1', 'item-uuid-1'),
+    new ItemLookupRequestItem('service-uuid-2', 'item-uuid-2'),
+]);
+foreach ($resp->items as $row) {
+    if ($row->found) {
+        echo "{$row->serviceId}/{$row->itemId}: {$row->item->price}\n";
+    } else {
+        echo "{$row->serviceId}/{$row->itemId}: MISSING ({$row->error})\n";
+    }
+}
+
 // Create an order
 $order = $client->orders->create([
     'ordersType' => 'shop',

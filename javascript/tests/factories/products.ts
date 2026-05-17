@@ -6,6 +6,9 @@ import type {
   ProductListResponse,
   ProductStockItem,
   ProductStockResponse,
+  ItemLookupRequestItem,
+  ItemLookupRow,
+  ItemLookupResponse,
 } from '../../src/models/index.js';
 
 /**
@@ -112,6 +115,59 @@ export function makeProductStockResponse(
     items: [
       makeProductStockItem(),
       makeProductStockItem({ itemId: 'item-002', stock: null }),
+    ],
+    ...overrides,
+  };
+}
+
+export function makeItemLookupRequestItem(
+  overrides?: Partial<ItemLookupRequestItem>,
+): ItemLookupRequestItem {
+  return {
+    serviceId: 'svc-001',
+    itemId: 'item-001',
+    ...overrides,
+  };
+}
+
+export function makeItemLookupRow(
+  overrides?: Partial<ItemLookupRow>,
+): ItemLookupRow {
+  const base: ItemLookupRow = {
+    serviceId: 'svc-001',
+    itemId: 'item-001',
+    found: true,
+    item: makeProductItem(),
+    error: null,
+  };
+  return { ...base, ...overrides };
+}
+
+/**
+ * Default fixture builds a mixed 3-row response: one hit, one
+ * service_not_found, one item_not_found — same shape the backend returns
+ * for partial misses.
+ */
+export function makeItemLookupResponse(
+  overrides?: Partial<ItemLookupResponse>,
+): ItemLookupResponse {
+  return {
+    items: [
+      makeItemLookupRow(),
+      makeItemLookupRow({
+        serviceId: 'svc-missing',
+        itemId: 'item-001',
+        found: false,
+        item: null,
+        error: 'service_not_found',
+      }),
+      makeItemLookupRow({
+        serviceId: 'svc-001',
+        itemId: 'item-missing',
+        found: false,
+        item: null,
+        error: 'item_not_found',
+      }),
     ],
     ...overrides,
   };

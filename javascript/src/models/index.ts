@@ -17,6 +17,10 @@ export type {
   ProductListResponse,
   ProductStockItem,
   ProductStockResponse,
+  ItemLookupRequestItem,
+  ItemLookupRequest,
+  ItemLookupRow,
+  ItemLookupResponse,
 } from "./products.js";
 
 export type {

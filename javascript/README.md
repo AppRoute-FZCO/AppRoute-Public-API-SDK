@@ -37,6 +37,24 @@ const product = await client.services.get("product-id");
 // Check stock
 const stock = await client.services.stock("product-id");
 
+// Get a single denomination/item directly
+const item = await client.services.getItem("service-id", "item-id");
+console.log(item.id, item.price, item.currency);
+
+// Batch lookup up to 100 (serviceId, itemId) pairs in one round-trip.
+// The response preserves input order; each row has found + item or error.
+const lookup = await client.services.lookupItems([
+  { serviceId: "service-id-1", itemId: "item-id-1" },
+  { serviceId: "service-id-2", itemId: "item-id-2" },
+]);
+for (const row of lookup.items) {
+  if (row.found && row.item) {
+    console.log(`${row.serviceId}/${row.itemId}: ${row.item.price}`);
+  } else {
+    console.log(`${row.serviceId}/${row.itemId}: MISSING (${row.error})`);
+  }
+}
+
 // Purchase a voucher
 const order = await client.orders.create({
   ordersType: "shop",
@@ -186,7 +204,7 @@ function handleStatus(s: TransactionStatus) {
 
 | Resource         | Methods                                                                                     |
 | ---------------- | ------------------------------------------------------------------------------------------- |
-| `services`       | `list()`, `get(id)`, `stock(id)`                                                            |
+| `services`       | `list()`, `get(id)`, `stock(id)`, `getItem(serviceId, itemId)`, `lookupItems(items)`        |
 | `orders`         | `create(opts)`, `checkDtu(opts)`, `list(opts?)`                                             |
 | `accounts`       | `balances()`, `transactions(opts?)`                                                         |
 | `funds`          | `methods()`, `createInvoice(opts)`, `listInvoices(opts?)`, `getInvoice(id)`, `checkInvoice(id)`, `invoiceTimeLeft(id)`, `tonDeposit()`, `bybitState()`, `bybitAttach(uid)`, `bybitUnlink()` |

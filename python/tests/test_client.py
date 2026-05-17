@@ -15,7 +15,7 @@ from approute.resources.steam_currency import SteamCurrencyResource
 
 class TestAppRouteClient:
     def test_version(self) -> None:
-        assert __version__ == "1.0.0"
+        assert __version__ == "1.1.0"
 
     def test_constructor_creates_resources(self) -> None:
         with patch("approute.client.HttpTransport") as mock_cls:

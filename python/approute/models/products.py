@@ -60,3 +60,46 @@ class ProductStockItem(_Base):
 class ProductStockResponse(_Base):
     product_id: str
     items: list[ProductStockItem]
+
+
+# ---------------------------------------------------------------------------
+# Per-item lookup endpoints (GET /services/{id}/items/{item_id} and
+# POST /services/items/lookup). The transport layer auto-converts snake_case
+# model fields to/from camelCase JSON keys, so models use the snake_case
+# convention of the rest of this file.
+# ---------------------------------------------------------------------------
+
+
+class ItemLookupRequestItem(_Base):
+    """One ``(serviceId, itemId)`` pair inside a batch lookup request."""
+
+    service_id: str
+    item_id: str
+
+
+class ItemLookupRequest(_Base):
+    """Request body for ``POST /services/items/lookup``."""
+
+    items: list[ItemLookupRequestItem]
+
+
+class ItemLookupRow(_Base):
+    """One row in the batch-lookup response. Always present per input pair,
+    in the same order as the request.
+    """
+
+    service_id: str
+    item_id: str
+    found: bool
+    item: ProductItem | None = None
+    error: str | None = None  # e.g. "service_not_found", "item_not_found"
+
+
+class ItemLookupResponse(_Base):
+    """Response body for ``POST /services/items/lookup``.
+
+    ``items`` is in the same order as the request — partners can ``zip()``
+    request and response without re-keying.
+    """
+
+    items: list[ItemLookupRow]
