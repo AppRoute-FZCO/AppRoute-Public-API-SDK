@@ -22,6 +22,9 @@ from tests.factories.orders import (
     make_voucher,
 )
 from tests.factories.products import (
+    make_item_lookup_request_item,
+    make_item_lookup_response,
+    make_item_lookup_row,
     make_product,
     make_product_field,
     make_product_item,
@@ -56,6 +59,9 @@ __all__ = [
     "make_transaction_list_response",
     "make_voucher",
     # Products
+    "make_item_lookup_request_item",
+    "make_item_lookup_response",
+    "make_item_lookup_row",
     "make_product",
     "make_product_field",
     "make_product_item",

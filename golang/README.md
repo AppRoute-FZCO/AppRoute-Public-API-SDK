@@ -29,6 +29,7 @@ import (
 	"log"
 
 	approute "github.com/approute/public-api-sdk-go"
+	"github.com/approute/public-api-sdk-go/model"
 )
 
 func main() {
@@ -43,6 +44,30 @@ func main() {
 	}
 	for _, p := range products.Items {
 		fmt.Printf("Product %s: %v\n", p.ID, p.Name)
+	}
+
+	// Get a single denomination/item directly
+	item, err := client.Services.GetItem(ctx, "svc-id", "item-id")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Item %s: %.2f %s\n", item.ID, item.Price, item.Currency)
+
+	// Batch lookup up to 100 (serviceId, itemId) pairs in one round-trip.
+	// The response preserves input order; each row has Found + Item or Error.
+	resp, err := client.Services.LookupItems(ctx, []model.ItemLookupRequestItem{
+		{ServiceID: "svc-id-1", ItemID: "item-id-1"},
+		{ServiceID: "svc-id-2", ItemID: "item-id-2"},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, row := range resp.Items {
+		if row.Found && row.Item != nil {
+			fmt.Printf("%s/%s: %.2f\n", row.ServiceID, row.ItemID, row.Item.Price)
+		} else {
+			fmt.Printf("%s/%s: MISSING (%s)\n", row.ServiceID, row.ItemID, row.Error)
+		}
 	}
 
 	// Get account balances
@@ -98,7 +123,7 @@ approute                             # Root: Client, Options, Version
 
 | Resource           | Methods                                                                 |
 |--------------------|-------------------------------------------------------------------------|
-| `Services`         | `List`, `Get`, `Stock`                                                  |
+| `Services`         | `List`, `Get`, `Stock`, `GetItem`, `LookupItems`                        |
 | `Orders`           | `Create`, `CheckDTU`, `List`                                            |
 | `Accounts`         | `Balances`, `Transactions`                                              |
 | `Funds`            | `Methods`, `CreateInvoice`, `ListInvoices`, `GetInvoice`, `CheckInvoice`, `InvoiceTimeLeft`, `TonDeposit`, `BybitState`, `BybitAttach`, `BybitUnlink` |

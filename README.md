@@ -37,7 +37,7 @@ The SDKs default to the international API endpoint. Russian clients should pass 
 
 All SDKs cover the **Data Plane** endpoints:
 
-- **Services** — product catalog (list, get by ID)
+- **Services** — product catalog (list, get by ID, get single item, batch item lookup)
 - **Orders** — create purchases, DTU checks, list orders
 - **Accounts** — balances, transaction history
 - **Funds** — funding methods, invoices (create, list, check), TON deposits, Bybit UID management
@@ -54,6 +54,11 @@ All API responses use a unified envelope format. The SDKs automatically:
 - Throw/return typed errors for failed responses with `code`, `message`, `traceId`, and field-level `errors`
 
 ## Changelog
+
+### 1.1.0
+
+Added `ServicesResource.getItem` (single-item GET) and `lookupItems` (batch
+POST, up to 100 `(serviceId, itemId)` pairs). No breaking changes.
 
 ### Breaking change (2026-05): `POST /orders` no longer returns 429 for API-key spend caps
 

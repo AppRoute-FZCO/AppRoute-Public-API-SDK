@@ -171,6 +171,60 @@ func newProductStockResponse(items ...model.ProductStockItem) model.ProductStock
 	return model.ProductStockResponse{ProductID: "prod-1", Items: items}
 }
 
+func newItemLookupRequestItem(opts ...func(*model.ItemLookupRequestItem)) model.ItemLookupRequestItem {
+	r := model.ItemLookupRequestItem{
+		ServiceID: "svc-1",
+		ItemID:    "item-1",
+	}
+	for _, opt := range opts {
+		opt(&r)
+	}
+	return r
+}
+
+func newItemLookupRow(opts ...func(*model.ItemLookupRow)) model.ItemLookupRow {
+	item := newProductItem()
+	r := model.ItemLookupRow{
+		ServiceID: "svc-1",
+		ItemID:    "item-1",
+		Found:     true,
+		Item:      &item,
+	}
+	for _, opt := range opts {
+		opt(&r)
+	}
+	return r
+}
+
+// newItemLookupResponse builds a mixed 3-row response by default:
+//   - row 0: hit on svc-1/item-1
+//   - row 1: service_not_found on svc-missing/item-1
+//   - row 2: item_not_found on svc-1/item-missing
+//
+// Same shape the backend returns for partial misses.
+func newItemLookupResponse(rows ...model.ItemLookupRow) model.ItemLookupResponse {
+	if rows == nil {
+		rows = []model.ItemLookupRow{
+			newItemLookupRow(),
+			newItemLookupRow(func(r *model.ItemLookupRow) {
+				r.ServiceID = "svc-missing"
+				r.ItemID = "item-1"
+				r.Found = false
+				r.Item = nil
+				r.Error = "service_not_found"
+			}),
+			newItemLookupRow(func(r *model.ItemLookupRow) {
+				r.ServiceID = "svc-1"
+				r.ItemID = "item-missing"
+				r.Found = false
+				r.Item = nil
+				r.Error = "item_not_found"
+			}),
+		}
+	}
+	return model.ItemLookupResponse{Items: rows}
+}
+
 // ── Orders ───────────────────────────────────────────────────────
 
 func newVoucher(opts ...func(*model.Voucher)) model.Voucher {

@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from approute.models import (
+    ItemLookupRequestItem,
+    ItemLookupResponse,
+    ItemLookupRow,
     Product,
     ProductField,
     ProductFieldValidation,
@@ -103,3 +106,59 @@ def make_product_stock_response(
         if items is not None
         else [make_product_stock_item(), make_product_stock_item(item_id="item-002", stock=None)],
     )
+
+
+def make_item_lookup_request_item(
+    *,
+    service_id: str = "svc-001",
+    item_id: str = "item-001",
+) -> ItemLookupRequestItem:
+    return ItemLookupRequestItem(service_id=service_id, item_id=item_id)
+
+
+def make_item_lookup_row(
+    *,
+    service_id: str = "svc-001",
+    item_id: str = "item-001",
+    found: bool = True,
+    item: ProductItem | None = None,
+    error: str | None = None,
+) -> ItemLookupRow:
+    if found and item is None:
+        item = make_product_item(id=item_id)
+    return ItemLookupRow(
+        service_id=service_id,
+        item_id=item_id,
+        found=found,
+        item=item,
+        error=error,
+    )
+
+
+def make_item_lookup_response(
+    *,
+    rows: list[ItemLookupRow] | None = None,
+) -> ItemLookupResponse:
+    """Default fixture builds a mixed 3-row response: one hit,
+    one ``service_not_found``, one ``item_not_found`` — the same shape
+    the backend returns for partial misses.
+    """
+    if rows is None:
+        rows = [
+            make_item_lookup_row(),
+            make_item_lookup_row(
+                service_id="svc-missing",
+                item_id="item-001",
+                found=False,
+                item=None,
+                error="service_not_found",
+            ),
+            make_item_lookup_row(
+                service_id="svc-001",
+                item_id="item-missing",
+                found=False,
+                item=None,
+                error="item_not_found",
+            ),
+        ]
+    return ItemLookupResponse(items=rows)

@@ -7,6 +7,9 @@ export {
   makeProductGetResponse,
   makeProductStockItem,
   makeProductStockResponse,
+  makeItemLookupRequestItem,
+  makeItemLookupRow,
+  makeItemLookupResponse,
 } from './products.js';
 
 export {

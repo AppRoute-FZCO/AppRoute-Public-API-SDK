@@ -31,6 +31,10 @@ from approute.models.orders import (
     Voucher,
 )
 from approute.models.products import (
+    ItemLookupRequest,
+    ItemLookupRequestItem,
+    ItemLookupResponse,
+    ItemLookupRow,
     Product,
     ProductField,
     ProductFieldOption,
@@ -75,6 +79,10 @@ __all__ = [
     "TransactionPage",
     "Voucher",
     # Products
+    "ItemLookupRequest",
+    "ItemLookupRequestItem",
+    "ItemLookupResponse",
+    "ItemLookupRow",
     "Product",
     "ProductField",
     "ProductFieldOption",

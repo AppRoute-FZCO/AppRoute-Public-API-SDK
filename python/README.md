@@ -28,6 +28,24 @@ for product in products.items:
 # Get a product
 product = client.services.get("product-uuid")
 
+# Get a single denomination/item directly
+item = client.services.get_item("svc-uuid", "item-uuid")
+print(f"{item.name}: {item.price} {item.currency}")
+
+# Batch lookup up to 100 (serviceId, itemId) pairs in one round-trip.
+# The response preserves input order; each row has found + item or error.
+from approute.models import ItemLookupRequestItem
+
+resp = client.services.lookup_items([
+    ItemLookupRequestItem(service_id="svc-uuid-1", item_id="item-uuid-1"),
+    ItemLookupRequestItem(service_id="svc-uuid-2", item_id="item-uuid-2"),
+])
+for row in resp.items:
+    if row.found:
+        print(f"{row.service_id}/{row.item_id}: {row.item.price}")
+    else:
+        print(f"{row.service_id}/{row.item_id}: MISSING ({row.error})")
+
 # Create an order
 order = client.orders.create(
     orders_type="shop",
