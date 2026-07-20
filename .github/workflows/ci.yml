@@ -30,7 +30,34 @@ jobs:
         run: mypy approute
 
       - name: Test
-        run: pytest --tb=short -q
+        run: pytest --tb=short -q --junitxml=pytest-report.xml
+
+      - name: Guard - tests ran, zero skipped (K3 close-out p.1)
+        run: |
+          python3 - <<'PYEOF'
+          import sys, xml.etree.ElementTree as ET
+          try:
+              root = ET.parse("pytest-report.xml").getroot()
+          except Exception as exc:
+              sys.exit(f"K3-GUARD FAIL: cannot read pytest-report.xml: {exc}")
+          suites = list(root.iter("testsuite"))
+          tests = sum(int(s.get("tests") or 0) for s in suites)
+          errors = sum(int(s.get("errors") or 0) for s in suites)
+          skips = []
+          for tc in root.iter("testcase"):
+              for sk in tc.findall("skipped"):
+                  if sk.get("type") != "pytest.xfail":
+                      skips.append(f"{tc.get('classname')}::{tc.get('name')} :: {sk.get('message')}")
+          print(f"K3-GUARD: suites={len(suites)} tests={tests} errors={errors} skipped={len(skips)}")
+          for s in skips[:100]:
+              print("  SKIPPED:", s)
+          if not suites or tests == 0:
+              sys.exit("K3-GUARD FAIL: no tests ran (absent suite) - green must mean tests ran")
+          if errors:
+              sys.exit(f"K3-GUARD FAIL: {errors} collection errors")
+          if skips:
+              sys.exit(f"K3-GUARD FAIL: {len(skips)} skipped tests - skips forbidden in CI (K3 close-out p.1)")
+          PYEOF
 
   golang:
     name: Go SDK
@@ -49,7 +76,18 @@ jobs:
         run: go vet ./...
 
       - name: Test
-        run: go test -race -count=1 ./...
+        # K3 close-out p.1: verbose + captured output so the guard can prove tests ran un-skipped.
+        run: go test -race -count=1 -v ./... 2>&1 | tee go-tests.out; exit ${PIPESTATUS[0]}
+
+      - name: Guard - tests ran, zero skipped (K3 close-out p.1)
+        run: |
+          [ -s go-tests.out ] || { echo "K3-GUARD FAIL: go-tests.out missing/empty"; exit 1; }
+          if grep -- "--- SKIP" go-tests.out; then
+            echo "K3-GUARD FAIL: skipped Go tests - skips forbidden in CI"; exit 1
+          fi
+          PASSED=$(grep -c -- "--- PASS: " go-tests.out || true)
+          echo "K3-GUARD: passed=$PASSED"
+          [ "$PASSED" -gt 0 ] || { echo "K3-GUARD FAIL: no Go tests ran"; exit 1; }
 
       - name: Benchmark
         run: go test -bench=. -benchmem -benchtime=1s ./... | tee /dev/null
