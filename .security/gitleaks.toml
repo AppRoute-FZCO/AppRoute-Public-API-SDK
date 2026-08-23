@@ -1,0 +1,6 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Generated local worktrees are developer metadata, not repository content; CI checkouts do not contain them."
+paths = ['''^\.worktrees/''']
