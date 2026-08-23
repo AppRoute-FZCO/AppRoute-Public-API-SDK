@@ -19,10 +19,40 @@ if [[ "$TARGET" =~ [Pp][Rr][Oo][Dd] || "$TARGET" =~ [Pp][Rr][Oo][Dd][Uu][Cc][Tt]
   echo "Refusing ZAP target that looks like production: $TARGET" >&2
   exit 2
 fi
-if [[ ! "$TARGET" =~ ^https?://(127\.0\.0\.1|localhost|\[::1\]|[^/]*\.sandbox\.) ]]; then
-  echo "Refusing non-local/non-sandbox ZAP target: $TARGET" >&2
-  exit 2
-fi
+# Parse the URL instead of applying a substring regex. This rejects userinfo
+# tricks (trusted.sandbox.example@evil.example), look-alike suffixes
+# (foo.sandbox.example.evil.com), and malformed local-host prefixes.
+python3 - "$TARGET" <<'PYURL'
+import re
+import sys
+from urllib.parse import urlsplit
+
+raw = sys.argv[1]
+try:
+    parsed = urlsplit(raw)
+    host = parsed.hostname
+    _port = parsed.port
+except ValueError:
+    parsed = None
+    host = None
+
+if parsed is None or parsed.scheme not in {"http", "https"} or not host:
+    raise SystemExit(2)
+if parsed.username is not None or parsed.password is not None:
+    raise SystemExit(2)
+if parsed.fragment:
+    raise SystemExit(2)
+
+host = host.rstrip(".").lower()
+if host not in {"localhost", "127.0.0.1", "::1"}:
+    labels = host.split(".")
+    # Explicit three-label sandbox form: <service>.sandbox.<domain>.
+    if len(labels) != 3 or labels[1] != "sandbox" or any(
+        not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", label)
+        for label in labels
+    ):
+        raise SystemExit(2)
+PYURL
 
 mkdir -p "$OUT_DIR"
 if command -v zap-baseline.py >/dev/null 2>&1; then
