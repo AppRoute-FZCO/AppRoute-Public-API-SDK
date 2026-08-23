@@ -1,0 +1,51 @@
+rules:
+  - id: approute-go-tls-verification-disabled
+    languages: [go]
+    message: TLS certificate verification must not be disabled (InsecureSkipVerify).
+    severity: ERROR
+    patterns:
+      - pattern: |
+          &tls.Config{..., InsecureSkipVerify: true, ...}
+    metadata:
+      category: security
+      technology: [go, tls]
+      cwe: ["CWE-295"]
+  - id: approute-go-broken-hash-new-protocol
+    languages: [go]
+    message: MD5/SHA-1 are cryptographically broken. They are tolerated only where a payment provider protocol mandates them (those call sites must keep a nosec/nolint annotation); never use them in new code.
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: md5.Sum(...)
+          - pattern: md5.New()
+          - pattern: sha1.Sum(...)
+          - pattern: sha1.New()
+      - pattern-not-regex: ".*(nosec|nolint).*"
+    metadata:
+      category: security
+      technology: [go, crypto]
+      cwe: ["CWE-327"]
+  - id: approute-go-exec-shell-composition
+    languages: [go]
+    message: Avoid passing dynamically composed commands through sh -c.
+    severity: ERROR
+    patterns:
+      - pattern: exec.Command("sh", "-c", ...)
+    metadata:
+      category: security
+      technology: [go, exec]
+      cwe: ["CWE-78"]
+  - id: approute-go-sql-string-concat
+    languages: [go]
+    message: SQL built with string concatenation/fmt.Sprintf is injection-prone; use sqlc-generated parameterized queries.
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: $DB.Query(fmt.Sprintf(...), ...)
+          - pattern: $DB.QueryContext($CTX, fmt.Sprintf(...), ...)
+          - pattern: $DB.Exec(fmt.Sprintf(...), ...)
+          - pattern: $DB.ExecContext($CTX, fmt.Sprintf(...), ...)
+    metadata:
+      category: security
+      technology: [go, sql]
+      cwe: ["CWE-89"]

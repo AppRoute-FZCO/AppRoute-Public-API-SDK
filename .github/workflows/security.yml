@@ -1,0 +1,153 @@
+name: Repository Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "23 4 * * 2"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repository-security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  workflow-policy:
+    name: Workflow syntax and immutable actions
+    runs-on: [self-hosted, linux]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: actionlint
+        uses: rhysd/actionlint@914e7df21a07ef503a81201c76d2b11c789d3fca # v1.7.12
+      - name: Enforce immutable action references and runner isolation
+        run: python scripts/ci/check_workflow_policy.py
+
+  secrets:
+    name: Gitleaks
+    runs-on: [self-hosted, linux]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+  semgrep:
+    name: Semgrep SAST
+    runs-on: [self-hosted, linux]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Run Semgrep
+        run: |
+          set -euo pipefail
+          if command -v semgrep >/dev/null 2>&1; then
+            semgrep scan --config .security/semgrep.yml --error --metrics=off --exclude .worktrees --exclude .venv --exclude node_modules --exclude "*_test.go" .
+          elif command -v docker >/dev/null 2>&1; then
+            docker run --rm -v "$PWD:/src:ro" semgrep/semgrep:1.136.0 semgrep \
+              scan --config /src/.security/semgrep.yml --error --metrics=off \
+              --exclude .worktrees --exclude .venv --exclude node_modules --exclude "*_test.go" /src
+          else
+            echo "Semgrep CLI or Docker is required on the security runner" >&2
+            exit 127
+          fi
+
+  dependency-review:
+    name: Dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: [self-hosted, linux]
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: high
+          deny-licenses: GPL-3.0, AGPL-3.0
+
+  codeql:
+    name: CodeQL Go
+    runs-on: [self-hosted, linux]
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: github/codeql-action/init@faaa5d804fc648d0fdb28822a8e36cf7d0a6132c # v4.37.7
+        with:
+          languages: python, javascript-typescript, go
+          queries: security-extended
+      - uses: github/codeql-action/analyze@faaa5d804fc648d0fdb28822a8e36cf7d0a6132c # v4.37.7
+        with:
+          category: /language:polyglot
+
+  trivy:
+    name: Trivy filesystem, IaC, and dependency scan
+    runs-on: [self-hosted, linux]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Run Trivy filesystem, IaC, and dependency scan
+        run: |
+          set -euo pipefail
+          if command -v trivy >/dev/null 2>&1; then
+            trivy fs --scanners vuln,misconfig,secret --severity HIGH,CRITICAL --exit-code 1 --skip-dirs .git,.worktrees,.venv,node_modules .
+          elif command -v docker >/dev/null 2>&1; then
+            docker run --rm -v "$PWD:/repo:ro" aquasec/trivy:0.66.0 \
+              fs --scanners vuln,misconfig,secret --severity HIGH,CRITICAL \
+              --exit-code 1 \
+              --skip-dirs /repo/.git,/repo/.worktrees,/repo/.venv,/repo/node_modules /repo
+          else
+            echo "Trivy CLI or Docker is required on the security runner" >&2
+            exit 127
+          fi
+
+  dependency-audit:
+    name: govulncheck
+    runs-on: [self-hosted, linux]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@4b73464bb391f143b9b2ee0a378bd45c796194cb # v6.2.0
+        with:
+          go-version: "1.24"
+          cache: true
+      - name: govulncheck
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.1.4 ./...
+
+  aggregate:
+    name: Repository security required gate
+    if: always()
+    needs: [workflow-policy, secrets, semgrep, dependency-review, codeql, trivy, dependency-audit]
+    runs-on: [self-hosted, linux]
+    timeout-minutes: 5
+    steps:
+      - name: Require security jobs
+        env:
+          POLICY: ${{ needs.workflow-policy.result }}
+          SECRETS: ${{ needs.secrets.result }}
+          SEMGREP: ${{ needs.semgrep.result }}
+          REVIEW: ${{ needs.dependency-review.result }}
+          CODEQL: ${{ needs.codeql.result }}
+          TRIVY: ${{ needs.trivy.result }}
+          AUDIT: ${{ needs.dependency-audit.result }}
+        run: |
+          set -euo pipefail
+          test "$POLICY" = success
+          test "$SECRETS" = success
+          test "$SEMGREP" = success
+          test "$CODEQL" = success
+          test "$TRIVY" = success
+          test "$AUDIT" = success
+          test "$REVIEW" = success -o "$REVIEW" = skipped
