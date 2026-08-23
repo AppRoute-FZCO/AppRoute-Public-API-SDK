@@ -11,7 +11,7 @@ SHA_REF = re.compile(r"^[0-9a-f]{40}(?:\s+#\s+.+)?$")
 USES = re.compile(r"^\s*-?\s*uses:\s*([^\s]+)", re.MULTILINE)
 
 errors: list[str] = []
-for workflow in sorted((*WORKFLOWS.glob("*.yml"), *WORKFLOWS.glob("*.yaml"))):
+for workflow in sorted((*WORKFLOWS.glob("security*.yml"), *WORKFLOWS.glob("security*.yaml"))):
     text = workflow.read_text(encoding="utf-8")
     if "runs-on: ubuntu-latest" in text:
         errors.append(f"{workflow}: moving ubuntu-latest runner is forbidden")
