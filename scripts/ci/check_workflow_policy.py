@@ -4,14 +4,27 @@
 from __future__ import annotations
 
 import re
+import tomllib
 from pathlib import Path
 
-WORKFLOWS = Path(__file__).resolve().parents[2] / ".github" / "workflows"
+ROOT = Path(__file__).resolve().parents[2]
+WORKFLOWS = ROOT / ".github" / "workflows"
+EXCLUSIONS = ROOT / ".security" / "workflow-policy-exclusions.toml"
 SHA_REF = re.compile(r"^[0-9a-f]{40}(?:\s+#\s+.+)?$")
 USES = re.compile(r"^\s*-?\s*uses:\s*([^\s]+)", re.MULTILINE)
 
 errors: list[str] = []
-for workflow in sorted((*WORKFLOWS.glob("security*.yml"), *WORKFLOWS.glob("security*.yaml"))):
+exclusions: dict[str, str] = {}
+if EXCLUSIONS.exists():
+    for item in tomllib.loads(EXCLUSIONS.read_text(encoding="utf-8")).get("exclude", []):
+        path, reason = item.get("path"), item.get("reason", "").strip()
+        if not path or not reason:
+            errors.append(f"{EXCLUSIONS}: every exclusion needs path and reason")
+        exclusions[path] = reason
+for workflow in sorted((*WORKFLOWS.glob("*.yml"), *WORKFLOWS.glob("*.yaml"))):
+    rel = workflow.relative_to(ROOT).as_posix()
+    if rel in exclusions:
+        continue
     text = workflow.read_text(encoding="utf-8")
     if "runs-on: ubuntu-latest" in text:
         errors.append(f"{workflow}: moving ubuntu-latest runner is forbidden")

@@ -1,0 +1,9 @@
+# Explicitly versioned legacy workflow exclusions.
+
+[[exclude]]
+path = ".github/workflows/ci.yml"
+reason = "Legacy workflow retained unchanged; immutable-action/self-hosted migration is tracked separately and must not be silently bypassed."
+
+[[exclude]]
+path = ".github/workflows/release.yml"
+reason = "Legacy workflow retained unchanged; immutable-action/self-hosted migration is tracked separately and must not be silently bypassed."
