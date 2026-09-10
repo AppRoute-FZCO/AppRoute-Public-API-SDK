@@ -1,0 +1,158 @@
+rules:
+- id: approute-go-tls-verification-disabled
+  languages:
+  - go
+  message: TLS certificate verification must not be disabled (InsecureSkipVerify).
+  severity: ERROR
+  patterns:
+  - pattern: '&tls.Config{..., InsecureSkipVerify: true, ...}
+
+      '
+  metadata:
+    category: security
+    technology:
+    - go
+    - tls
+    cwe:
+    - CWE-295
+- id: approute-go-broken-hash-new-protocol
+  languages:
+  - go
+  message: MD5/SHA-1 are cryptographically broken. Any provider-required use needs a separately
+    reviewed exception scoped to that protocol call site.
+  severity: ERROR
+  patterns:
+  - pattern-either:
+    - pattern: md5.Sum(...)
+    - pattern: md5.New()
+    - pattern: sha1.Sum(...)
+    - pattern: sha1.New()
+  metadata:
+    category: security
+    technology:
+    - go
+    - crypto
+    cwe:
+    - CWE-327
+- id: approute-go-exec-shell-composition
+  languages:
+  - go
+  message: Avoid passing dynamically composed commands through sh -c.
+  severity: ERROR
+  patterns:
+  - pattern: exec.Command("sh", "-c", ...)
+  metadata:
+    category: security
+    technology:
+    - go
+    - exec
+    cwe:
+    - CWE-78
+- id: approute-go-sql-string-concat
+  languages:
+  - go
+  message: SQL built with string concatenation/fmt.Sprintf is injection-prone; use sqlc-generated parameterized
+    queries.
+  severity: ERROR
+  patterns:
+  - pattern-either:
+    - pattern: $DB.Query(fmt.Sprintf(...), ...)
+    - pattern: $DB.QueryContext($CTX, fmt.Sprintf(...), ...)
+    - pattern: $DB.Exec(fmt.Sprintf(...), ...)
+    - pattern: $DB.ExecContext($CTX, fmt.Sprintf(...), ...)
+  metadata:
+    category: security
+    technology:
+    - go
+    - sql
+    cwe:
+    - CWE-89
+- id: approute-python-subprocess-shell
+  languages:
+  - python
+  message: Avoid shell=True with user-controlled or dynamically composed commands.
+  severity: ERROR
+  patterns:
+  - pattern: subprocess.$FUNC(..., shell=True, ...)
+  - metavariable-regex:
+      metavariable: $FUNC
+      regex: ^(run|Popen|call|check_call|check_output)$
+  metadata:
+    category: security
+    technology:
+    - python
+    cwe:
+    - CWE-78
+- id: approute-python-unsafe-yaml-load
+  languages:
+  - python
+  message: Use yaml.safe_load or an explicit SafeLoader instead of yaml.load.
+  severity: ERROR
+  patterns:
+  - pattern: yaml.load(...)
+  - pattern-not: yaml.load(..., Loader=yaml.SafeLoader, ...)
+  metadata:
+    category: security
+    technology:
+    - python
+    - yaml
+    cwe:
+    - CWE-502
+- id: approute-python-tls-verification-disabled
+  languages:
+  - python
+  message: TLS certificate verification must not be disabled.
+  severity: ERROR
+  patterns:
+  - pattern-either:
+    - pattern: requests.$FUNC(..., verify=False, ...)
+    - pattern: httpx.$FUNC(..., verify=False, ...)
+  metadata:
+    category: security
+    technology:
+    - python
+    - requests
+    - httpx
+    cwe:
+    - CWE-295
+- id: approute-js-eval
+  languages:
+  - javascript
+  - typescript
+  message: Avoid eval(); it executes attacker-controlled strings as code.
+  severity: ERROR
+  pattern: eval(...)
+  metadata:
+    category: security
+    cwe:
+    - CWE-95
+- id: approute-js-new-function
+  languages:
+  - javascript
+  - typescript
+  message: Avoid new Function(); it is an eval equivalent.
+  severity: ERROR
+  pattern: new Function(...)
+  metadata:
+    category: security
+    cwe:
+    - CWE-95
+- id: approute-js-document-write
+  languages:
+  - javascript
+  - typescript
+  message: document.write can overwrite the document and enable XSS.
+  severity: ERROR
+  pattern-either:
+  - pattern: document.write(...)
+  - pattern: document.writeln(...)
+  metadata:
+    category: security
+    cwe:
+    - CWE-79
+- id: approute-php-eval
+  languages:
+  - php
+  message: Avoid eval of dynamically supplied PHP source.
+  severity: ERROR
+  pattern: eval(...);
