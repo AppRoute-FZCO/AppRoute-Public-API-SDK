@@ -1,0 +1,10 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Generated local worktrees are developer metadata, not repository content; CI checkouts do not contain them."
+paths = ['''(^|/)\.worktrees/''']
+
+[[allowlists]]
+description = "Local generated Git, dependency and scanner artifacts are outside the source snapshot."
+paths = ['''(^|/)(\.git|\.venv|\.mypy_cache|\.pytest_cache|\.ruff_cache|__pycache__|node_modules)/''', '''(^|/)\.security/results/''']

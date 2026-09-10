@@ -1,0 +1,54 @@
+name: Repository Security
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repository-security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    name: Static security (${{ matrix.scanner }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        scanner: [gitleaks, semgrep, trivy-config, trivy-vuln]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Run scanner
+        env:
+          SCANNER: ${{ matrix.scanner }}
+        run: bash scripts/security/run_security_scan.sh "$SCANNER"
+      - name: Preserve dependency findings
+        if: matrix.scanner == 'trivy-vuln' && success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: dependency-security-report
+          path: .security/results/trivy-vuln.json
+          if-no-files-found: error
+          retention-days: 14
+
+  aggregate:
+    name: Repository security required gate
+    if: always()
+    needs: [scan]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require every static scanner
+        env:
+          RESULT: ${{ needs.scan.result }}
+        run: test "$RESULT" = success
