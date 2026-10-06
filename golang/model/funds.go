@@ -32,6 +32,7 @@ type FundingInvoice struct {
 	MemoTag               *string                `json:"memoTag,omitempty"`
 	Address               string                 `json:"address"`
 	TxHash                *string                `json:"txHash,omitempty"`
+	ExplorerURL           *string                `json:"explorerUrl,omitempty"`
 	Status                enum.FundingStatus     `json:"status"`
 	ConfirmationsRequired *int                   `json:"confirmationsRequired,omitempty"`
 	Confirmations         *int                   `json:"confirmations,omitempty"`
@@ -49,7 +50,7 @@ type FundingInvoiceList struct {
 // FundingInvoiceCreateRequest is the body for POST /funds/invoices.
 type FundingInvoiceCreateRequest struct {
 	MethodCode enum.FundingMethodCode `json:"methodCode"`
-	Amount     float64               `json:"amount"`
+	Amount     float64                `json:"amount"`
 }
 
 // FundingInvoiceTimeLeft reports how much time remains before an invoice expires.

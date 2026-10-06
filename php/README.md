@@ -51,6 +51,9 @@ foreach ($resp->items as $row) {
     }
 }
 
+// Request full allowlisted catalog metadata; compact is the default.
+$fullCatalog = $client->services->list(view: 'full');
+
 // Create an order
 $order = $client->orders->create([
     'ordersType' => 'shop',

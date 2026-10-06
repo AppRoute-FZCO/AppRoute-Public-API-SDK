@@ -29,6 +29,15 @@ final class ServicesResourceTest extends TestCase
 
     // --- list() ---
 
+    public function testListForwardsViewQuery(): void
+    {
+        $this->transport->setResponse(ProductFactory::makeProductListData());
+
+        $this->resource->list(view: 'full');
+
+        $this->assertSame(['view' => 'full'], $this->transport->lastCall()['params']);
+    }
+
     public function testListReturnsProductArray(): void
     {
         $this->transport->setResponse(ProductFactory::makeProductListData());
@@ -94,6 +103,15 @@ final class ServicesResourceTest extends TestCase
 
     // --- get() ---
 
+    public function testGetForwardsViewQuery(): void
+    {
+        $this->transport->setResponse(ProductFactory::makeProductGetData());
+
+        $this->resource->get('prod-001', view: 'full');
+
+        $this->assertSame(['view' => 'full'], $this->transport->lastCall()['params']);
+    }
+
     public function testGetReturnsProduct(): void
     {
         $this->transport->setResponse(ProductFactory::makeProductGetData());
@@ -154,6 +172,15 @@ final class ServicesResourceTest extends TestCase
 
     // --- getItem() ---
 
+    public function testGetItemForwardsViewQuery(): void
+    {
+        $this->transport->setResponse(ProductFactory::makeProductItemData());
+
+        $this->resource->getItem('svc-1', 'item-1', view: 'full');
+
+        $this->assertSame(['view' => 'full'], $this->transport->lastCall()['params']);
+    }
+
     public function testGetItemReturnsProductItem(): void
     {
         $this->transport->setResponse(
@@ -181,6 +208,17 @@ final class ServicesResourceTest extends TestCase
     }
 
     // --- lookupItems() ---
+
+    public function testLookupItemsForwardsViewQuery(): void
+    {
+        $this->transport->setResponse(ItemLookupResponseFactory::makeLookupResponseData());
+
+        $this->resource->lookupItems([
+            new ItemLookupRequestItem('svc-1', 'item-1'),
+        ], view: 'full');
+
+        $this->assertSame(['view' => 'full'], $this->transport->lastCall()['params']);
+    }
 
     public function testLookupItemsReturnsLookupResponse(): void
     {

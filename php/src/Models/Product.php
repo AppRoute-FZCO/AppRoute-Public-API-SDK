@@ -20,6 +20,9 @@ final readonly class Product
         public ?string $subcategoryName = null,
         public array $items = [],
         public ?array $fields = null,
+        public ?string $section = null,
+        public ?string $activationCountries = null,
+        public ?string $activationGuide = null,
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -33,10 +36,13 @@ final readonly class Product
             id: $data['id'],
             name: $data['name'] ?? null,
             type: $data['type'],
+            section: $data['section'] ?? null,
             imageUrl: $data['imageUrl'] ?? null,
             countryCode: $data['countryCode'] ?? null,
             categoryName: $data['categoryName'] ?? null,
             subcategoryName: $data['subcategoryName'] ?? null,
+            activationCountries: $data['activationCountries'] ?? null,
+            activationGuide: $data['activationGuide'] ?? null,
             items: $items,
             fields: $fields,
         );

@@ -30,6 +30,7 @@ export interface FundingInvoice {
   memoTag?: string;
   address: string;
   txHash?: string;
+  explorerUrl?: string | null;
   status: string;
   confirmationsRequired?: number;
   confirmations?: number;

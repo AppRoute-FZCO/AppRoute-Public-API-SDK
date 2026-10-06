@@ -36,21 +36,30 @@ type ProductItem struct {
 	Currency          string  `json:"currency"`
 	Available         bool    `json:"available"`
 	Stock             *int    `json:"stock,omitempty"`
+	InStock           *int    `json:"inStock,omitempty"`
 	IsLongOrder       *bool   `json:"isLongOrder,omitempty"`
 	MinQtyToLongOrder *int    `json:"minQtyToLongOrder,omitempty"`
+	AmountIsQuantity  *bool   `json:"amountIsQuantity,omitempty"`
+	MinQuantity       *int    `json:"minQuantity,omitempty"`
+	MaxQuantity       *int    `json:"maxQuantity,omitempty"`
+	StepQuantity      *int    `json:"stepQuantity,omitempty"`
+	UnitPrice         *string `json:"unitPrice,omitempty"`
 }
 
 // Product is a catalog entry (voucher or direct top-up).
 type Product struct {
-	ID              string           `json:"id"`
-	Name            *string          `json:"name,omitempty"`
-	Type            enum.ProductType `json:"type"`
-	ImageURL        *string          `json:"imageUrl,omitempty"`
-	CountryCode     *string          `json:"countryCode,omitempty"`
-	CategoryName    *string          `json:"categoryName,omitempty"`
-	SubcategoryName *string          `json:"subcategoryName,omitempty"`
-	Items           []ProductItem    `json:"items"`
-	Fields          []ProductField   `json:"fields,omitempty"`
+	ID                  string           `json:"id"`
+	Name                *string          `json:"name,omitempty"`
+	Type                enum.ProductType `json:"type"`
+	Section             *string          `json:"section,omitempty"`
+	ImageURL            *string          `json:"imageUrl,omitempty"`
+	CountryCode         *string          `json:"countryCode,omitempty"`
+	CategoryName        *string          `json:"categoryName,omitempty"`
+	SubcategoryName     *string          `json:"subcategoryName,omitempty"`
+	ActivationCountries *string          `json:"activationCountries,omitempty"`
+	ActivationGuide     *string          `json:"activationGuide,omitempty"`
+	Items               []ProductItem    `json:"items"`
+	Fields              []ProductField   `json:"fields,omitempty"`
 }
 
 // ProductListResponse is the paginated list returned by GET /services.

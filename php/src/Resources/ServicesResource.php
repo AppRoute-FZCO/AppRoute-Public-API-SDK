@@ -25,15 +25,17 @@ class ServicesResource implements ResourceInterface
     public function __construct(private readonly TransportInterface $transport) {}
 
     /** @return Product[] */
-    public function list(): array
+    public function list(?string $view = null): array
     {
-        $data = $this->transport->request('GET', '/services');
+        $params = $view === null ? null : ['view' => $view];
+        $data = $this->transport->request('GET', '/services', params: $params);
         return array_map(fn(array $p) => Product::fromArray($p), $data['items'] ?? []);
     }
 
-    public function get(string $productId): Product
+    public function get(string $productId, ?string $view = null): Product
     {
-        $data = $this->transport->request('GET', "/services/{$productId}");
+        $params = $view === null ? null : ['view' => $view];
+        $data = $this->transport->request('GET', "/services/{$productId}", params: $params);
         return Product::fromArray($data);
     }
 
@@ -50,9 +52,12 @@ class ServicesResource implements ResourceInterface
      * {@see ProductItem} shape that appears inside
      * GET /services/{serviceId}.data.items[].
      */
-    public function getItem(string $serviceId, string $itemId): ProductItem
+    public function getItem(string $serviceId, string $itemId, ?string $view = null): ProductItem
     {
-        $data = $this->transport->request('GET', "/services/{$serviceId}/items/{$itemId}");
+        $params = $view === null ? null : ['view' => $view];
+        $data = $this->transport->request(
+            'GET', "/services/{$serviceId}/items/{$itemId}", params: $params
+        );
         return ProductItem::fromArray($data);
     }
 
@@ -69,7 +74,7 @@ class ServicesResource implements ResourceInterface
      *                                    entries. The check happens before
      *                                    any HTTP call is made.
      */
-    public function lookupItems(array $items): ItemLookupResponse
+    public function lookupItems(array $items, ?string $view = null): ItemLookupResponse
     {
         if (count($items) === 0) {
             throw new \InvalidArgumentException('items must not be empty');
@@ -85,7 +90,10 @@ class ServicesResource implements ResourceInterface
                 $items,
             ),
         ];
-        $data = $this->transport->request('POST', '/services/items/lookup', body: $payload);
+        $params = $view === null ? null : ['view' => $view];
+        $data = $this->transport->request(
+            'POST', '/services/items/lookup', params: $params, body: $payload
+        );
         return ItemLookupResponse::fromArray($data);
     }
 }

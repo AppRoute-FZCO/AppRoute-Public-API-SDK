@@ -28,6 +28,13 @@ def resource(transport: MockTransport) -> ServicesResource:
 
 
 class TestServicesList:
+    def test_forwards_view_query(
+        self, resource: ServicesResource, transport: MockTransport
+    ) -> None:
+        transport.set_response(make_product_list_response())
+        resource.list(view="full")
+        assert transport.last_call.params == {"view": "full"}
+
     def test_returns_product_list(
         self, resource: ServicesResource, transport: MockTransport
     ) -> None:
@@ -47,6 +54,13 @@ class TestServicesList:
 
 
 class TestServicesGet:
+    def test_forwards_view_query(
+        self, resource: ServicesResource, transport: MockTransport
+    ) -> None:
+        transport.set_response(make_product())
+        resource.get("prod-001", view="full")
+        assert transport.last_call.params == {"view": "full"}
+
     def test_returns_product(self, resource: ServicesResource, transport: MockTransport) -> None:
         transport.set_response(make_product())
         result = resource.get("prod-001")
@@ -82,6 +96,13 @@ class TestServicesStock:
 
 
 class TestServicesGetItem:
+    def test_forwards_view_query(
+        self, resource: ServicesResource, transport: MockTransport
+    ) -> None:
+        transport.set_response(make_product_item(id="item-1"))
+        resource.get_item("svc-1", "item-1", view="full")
+        assert transport.last_call.params == {"view": "full"}
+
     def test_returns_product_item(
         self, resource: ServicesResource, transport: MockTransport
     ) -> None:
@@ -102,6 +123,13 @@ class TestServicesGetItem:
 
 
 class TestServicesLookupItems:
+    def test_forwards_view_query(
+        self, resource: ServicesResource, transport: MockTransport
+    ) -> None:
+        transport.set_response(make_item_lookup_response())
+        resource.lookup_items([make_item_lookup_request_item()], view="full")
+        assert transport.last_call.params == {"view": "full"}
+
     def test_returns_lookup_response(
         self, resource: ServicesResource, transport: MockTransport
     ) -> None:

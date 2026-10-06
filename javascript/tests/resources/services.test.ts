@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { ServicesResource } from "../../src/resources/services.js";
 import { MockTransport } from "../support/index.js";
 import { NotFoundError } from "../../src/errors/index.js";
+import { ProductType } from "../../src/enums/product-type.js";
 import {
   makeProductListResponse,
   makeProductGetResponse,
@@ -20,7 +21,19 @@ import type {
 } from "../../src/models/index.js";
 
 describe("ServicesResource", () => {
+  it("exposes the eSIM product type", () => {
+    expect(ProductType.ESIM).toBe("esim");
+  });
   describe("list()", () => {
+    it("should forward the view query", async () => {
+      const mock = new MockTransport(makeProductListResponse());
+      const resource = new ServicesResource(mock.transport);
+
+      await resource.list("full");
+
+      expect(mock.lastCall.options?.params).toEqual({ view: "full" });
+    });
+
     it("should return product list on success", async () => {
       const fixture = makeProductListResponse();
       const mock = new MockTransport(fixture);
@@ -66,6 +79,15 @@ describe("ServicesResource", () => {
   });
 
   describe("get()", () => {
+    it("should forward the view query", async () => {
+      const mock = new MockTransport(makeProductGetResponse());
+      const resource = new ServicesResource(mock.transport);
+
+      await resource.get("prod-001", "full");
+
+      expect(mock.lastCall.options?.params).toEqual({ view: "full" });
+    });
+
     it("should return a single product on success", async () => {
       const fixture = makeProductGetResponse();
       const mock = new MockTransport(fixture);
@@ -127,6 +149,15 @@ describe("ServicesResource", () => {
   });
 
   describe("getItem()", () => {
+    it("should forward the view query", async () => {
+      const mock = new MockTransport(makeProductItem());
+      const resource = new ServicesResource(mock.transport);
+
+      await resource.getItem("svc-1", "item-1", "full");
+
+      expect(mock.lastCall.options?.params).toEqual({ view: "full" });
+    });
+
     it("should return a single ProductItem on success", async () => {
       const fixture = makeProductItem({ id: "item-1", price: 12.34 });
       const mock = new MockTransport(fixture);
@@ -168,6 +199,15 @@ describe("ServicesResource", () => {
   });
 
   describe("lookupItems()", () => {
+    it("should forward the view query", async () => {
+      const mock = new MockTransport(makeItemLookupResponse());
+      const resource = new ServicesResource(mock.transport);
+
+      await resource.lookupItems([makeItemLookupRequestItem()], "full");
+
+      expect(mock.lastCall.options?.params).toEqual({ view: "full" });
+    });
+
     it("should return ItemLookupResponse on success", async () => {
       const mock = new MockTransport(makeItemLookupResponse());
       const resource = new ServicesResource(mock.transport);

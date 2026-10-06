@@ -1,4 +1,5 @@
-# TODO(openapi-coverage): this spec is incomplete. The /services paths
+# Catalog operations below include the shared view=compact|full contract.
+# TODO(openapi-coverage): the /services/{id}/stock and /orders paths remain
 # (GET /services, GET /services/{id}, GET /services/{id}/stock, the new
 # GET /services/{service_id}/items/{item_id}, and POST /services/items/lookup)
 # and the /orders paths are NOT yet described here, even though the
@@ -6,7 +7,7 @@
 # Until a dedicated catch-up PR lands the missing operations and rewires
 # them to the new ItemLookup* schemas, treat this file as a SCHEMA
 # reference only, not a complete contract. The four language SDKs are the
-# source of truth for the operation set.
+# source of truth for the remaining operation set.
 openapi: 3.1.0
 info:
   title: AppRoute Public API (Data Plane)
@@ -20,9 +21,69 @@ security:
   - ApiKeyAuth: []
 tags:
   - name: Accounts
+  - name: Catalog
   - name: Funds
 
 paths:
+  /services:
+    get:
+      tags: [Catalog]
+      summary: List catalog services
+      parameters:
+        - $ref: "#/components/parameters/CatalogView"
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/EnvelopeProductList" } } } }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+
+  /services/{id}:
+    get:
+      tags: [Catalog]
+      summary: Get catalog service
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+        - $ref: "#/components/parameters/CatalogView"
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/EnvelopeProduct" } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+
+  /services/{id}/items/{item_id}:
+    get:
+      tags: [Catalog]
+      summary: Get catalog denomination
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+        - in: path
+          name: item_id
+          required: true
+          schema: { type: string }
+        - $ref: "#/components/parameters/CatalogView"
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/EnvelopeProductItem" } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+
+  /services/items/lookup:
+    post:
+      tags: [Catalog]
+      summary: Look up catalog denominations
+      parameters:
+        - $ref: "#/components/parameters/CatalogView"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ItemLookupRequest" }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/EnvelopeItemLookup" } } } }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+
   /accounts:
     get:
       tags: [Accounts]
@@ -357,6 +418,17 @@ components:
       description: Trace id for correlation
       schema: { type: string }
 
+  parameters:
+    CatalogView:
+      in: query
+      name: view
+      description: Response detail level. Omitted defaults to compact.
+      required: false
+      schema:
+        type: string
+        enum: [compact, full]
+        default: compact
+
   responses:
     BadRequest:
       description: Bad request
@@ -530,7 +602,7 @@ components:
 
     ProductType:
       type: string
-      enum: [voucher, direct_topup]
+      enum: [voucher, direct_topup, esim]
 
     ProductFieldOption:
       type: object
@@ -576,27 +648,75 @@ components:
         currency: { type: string, enum: [USDT] }
         available: { type: boolean }
         stock: { type: integer, nullable: true }
+        inStock: { type: integer, nullable: true }
         isLongOrder: { type: boolean, nullable: true }
         minQtyToLongOrder: { type: integer, nullable: true }
+        amountIsQuantity: { type: boolean, nullable: true }
+        minQuantity: { type: integer, nullable: true }
+        maxQuantity: { type: integer, nullable: true }
+        stepQuantity: { type: integer, nullable: true }
+        unitPrice: { type: string, nullable: true }
 
     Product:
       type: object
       additionalProperties: false
-      required: [id, name, type, imageUrl, items]
+      required: [id, name, type, items]
       properties:
         id: { type: string }
         name: { type: string, nullable: true }
         type: { $ref: "#/components/schemas/ProductType" }
+        section: { type: string, nullable: true }
         imageUrl: { type: string, nullable: true }
         countryCode: { type: string, nullable: true }
         categoryName: { type: string, nullable: true }
         subcategoryName: { type: string, nullable: true }
+        activationCountries: { type: string, nullable: true }
+        activationGuide: { type: string, nullable: true }
         items:
           type: array
           items: { $ref: "#/components/schemas/ProductItem" }
         fields:
           type: array
           items: { $ref: "#/components/schemas/ProductField" }
+
+    ItemLookupRequestItem:
+      type: object
+      additionalProperties: false
+      required: [serviceId, itemId]
+      properties:
+        serviceId: { type: string }
+        itemId: { type: string }
+
+    ItemLookupRequest:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items: { $ref: "#/components/schemas/ItemLookupRequestItem" }
+
+    ItemLookupRow:
+      type: object
+      additionalProperties: false
+      required: [serviceId, itemId, found]
+      properties:
+        serviceId: { type: string }
+        itemId: { type: string }
+        found: { type: boolean }
+        item: { allOf: [{ $ref: "#/components/schemas/ProductItem" }], nullable: true }
+        error: { type: string, nullable: true }
+
+    ItemLookupResponse:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/ItemLookupRow" }
 
     ProductListResponse:
       type: object
@@ -787,6 +907,7 @@ components:
         memoTag: { type: string, nullable: true }
         address: { type: string }
         txHash: { type: string, nullable: true }
+        explorerUrl: { type: string, nullable: true }
         status: { $ref: "#/components/schemas/FundingStatus" }
         confirmationsRequired: { type: integer, nullable: true }
         confirmations: { type: integer, nullable: true }
@@ -877,6 +998,22 @@ components:
           additionalProperties: false
           properties:
             data: { $ref: "#/components/schemas/Product" }
+
+    EnvelopeProductItem:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          additionalProperties: false
+          properties:
+            data: { $ref: "#/components/schemas/ProductItem" }
+
+    EnvelopeItemLookup:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          additionalProperties: false
+          properties:
+            data: { $ref: "#/components/schemas/ItemLookupResponse" }
 
     EnvelopeProductStock:
       allOf:

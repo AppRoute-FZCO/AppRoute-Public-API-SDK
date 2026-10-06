@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 
 	"github.com/approute/public-api-sdk-go/model"
 )
@@ -26,8 +27,15 @@ func NewServices(t Transport) *ServicesResource {
 }
 
 // List returns all products in the catalog.
-func (r *ServicesResource) List(ctx context.Context) (*model.ProductListResponse, error) {
-	raw, err := r.t.Request(ctx, "GET", "/services", nil, nil)
+func catalogViewParams(view []string) url.Values {
+	if len(view) == 0 || view[0] == "" {
+		return nil
+	}
+	return url.Values{"view": []string{view[0]}}
+}
+
+func (r *ServicesResource) List(ctx context.Context, view ...string) (*model.ProductListResponse, error) {
+	raw, err := r.t.Request(ctx, "GET", "/services", catalogViewParams(view), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -35,8 +43,8 @@ func (r *ServicesResource) List(ctx context.Context) (*model.ProductListResponse
 }
 
 // Get retrieves a single product by its ID.
-func (r *ServicesResource) Get(ctx context.Context, productID string) (*model.Product, error) {
-	raw, err := r.t.Request(ctx, "GET", "/services/"+productID, nil, nil)
+func (r *ServicesResource) Get(ctx context.Context, productID string, view ...string) (*model.Product, error) {
+	raw, err := r.t.Request(ctx, "GET", "/services/"+productID, catalogViewParams(view), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -57,8 +65,8 @@ func (r *ServicesResource) Stock(ctx context.Context, productID string) (*model.
 // Calls GET /services/{serviceID}/items/{itemID} and returns the same
 // model.ProductItem shape that appears inside the items slice of
 // GET /services/{serviceID}.
-func (r *ServicesResource) GetItem(ctx context.Context, serviceID, itemID string) (*model.ProductItem, error) {
-	raw, err := r.t.Request(ctx, "GET", "/services/"+serviceID+"/items/"+itemID, nil, nil)
+func (r *ServicesResource) GetItem(ctx context.Context, serviceID, itemID string, view ...string) (*model.ProductItem, error) {
+	raw, err := r.t.Request(ctx, "GET", "/services/"+serviceID+"/items/"+itemID, catalogViewParams(view), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +79,7 @@ func (r *ServicesResource) GetItem(ctx context.Context, serviceID, itemID string
 //
 // Returns an error before any HTTP call is made when items is empty or has
 // more than MaxLookupItems entries.
-func (r *ServicesResource) LookupItems(ctx context.Context, items []model.ItemLookupRequestItem) (*model.ItemLookupResponse, error) {
+func (r *ServicesResource) LookupItems(ctx context.Context, items []model.ItemLookupRequestItem, view ...string) (*model.ItemLookupResponse, error) {
 	if len(items) == 0 {
 		return nil, errors.New("approute: items must not be empty")
 	}
@@ -79,7 +87,7 @@ func (r *ServicesResource) LookupItems(ctx context.Context, items []model.ItemLo
 		return nil, fmt.Errorf("approute: items must contain at most %d entries", MaxLookupItems)
 	}
 	body := model.ItemLookupRequest{Items: items}
-	raw, err := r.t.Request(ctx, "POST", "/services/items/lookup", nil, body)
+	raw, err := r.t.Request(ctx, "POST", "/services/items/lookup", catalogViewParams(view), body)
 	if err != nil {
 		return nil, err
 	}

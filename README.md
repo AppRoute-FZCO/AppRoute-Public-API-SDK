@@ -43,6 +43,21 @@ All SDKs cover the **Data Plane** endpoints:
 - **Funds** — funding methods, invoices (create, list, check), TON deposits, Bybit UID management
 - **Steam Currency** — exchange rates
 
+### Catalog response views
+
+Catalog methods accept `view="compact"` or `view="full"`; omitted `view` defaults
+to compact. Use full during migration when clients need images and the other
+allowlisted metadata:
+
+```text
+GET /services
+→
+GET /services?view=full
+```
+
+The same parameter is supported by the service, single-item, and batch-lookup
+methods in every SDK. Unknown values are rejected by the API with HTTP 422.
+
 ## Authentication
 
 All endpoints use API key authentication via `X-API-Key` header. The SDK handles this automatically.

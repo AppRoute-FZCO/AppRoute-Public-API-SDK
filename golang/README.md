@@ -70,6 +70,13 @@ func main() {
 		}
 	}
 
+	// Request full allowlisted catalog metadata; omitted view is compact.
+	fullCatalog, err := client.Services.List(ctx, "full")
+	if err != nil {
+		log.Fatal(err)
+	}
+	_ = fullCatalog
+
 	// Get account balances
 	balances, err := client.Accounts.Balances(ctx)
 	if err != nil {

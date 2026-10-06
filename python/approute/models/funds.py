@@ -26,6 +26,7 @@ class FundingInvoice(_Base):
     memo_tag: str | None = None
     address: str
     tx_hash: str | None = None
+    explorer_url: str | None = None
     status: str
     confirmations_required: int | None = None
     confirmations: int | None = None

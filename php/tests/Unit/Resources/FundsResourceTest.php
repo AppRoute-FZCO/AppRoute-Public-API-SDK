@@ -62,6 +62,7 @@ final class FundsResourceTest extends TestCase
         $this->assertSame('inv-001', $result->id);
         $this->assertSame('pending', $result->status);
         $this->assertSame(100.0, $result->amountExpected);
+        $this->assertNull($result->explorerUrl);
     }
 
     public function testCreateInvoiceSendsCorrectBody(): void

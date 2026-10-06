@@ -49,6 +49,7 @@ export function makeFundingInvoice(
     memoTag: null,
     address: 'TXyz123abc',
     txHash: null,
+    explorerUrl: null,
     status: 'pending',
     confirmationsRequired: 20,
     confirmations: 0,

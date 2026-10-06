@@ -22,15 +22,15 @@ export class ServicesResource extends BaseResource {
   /**
    * List all products/services in the catalog.
    */
-  async list(): Promise<ProductListResponse> {
-    return this.transport.request<ProductListResponse>("GET", "/services");
+  async list(view?: string): Promise<ProductListResponse> {
+    return this.transport.request<ProductListResponse>("GET", "/services", view === undefined ? undefined : { params: { view } });
   }
 
   /**
    * Get a single product/service by ID.
    */
-  async get(productId: string): Promise<Product> {
-    return this.transport.request<Product>("GET", `/services/${productId}`);
+  async get(productId: string, view?: string): Promise<Product> {
+    return this.transport.request<Product>("GET", `/services/${productId}`, view === undefined ? undefined : { params: { view } });
   }
 
   /**
@@ -50,12 +50,13 @@ export class ServicesResource extends BaseResource {
    * `ProductItem` shape that appears inside
    * `GET /services/{serviceId}.data.items[]`.
    */
-  async getItem(serviceId: string, itemId: string): Promise<ProductItem> {
+  async getItem(serviceId: string, itemId: string, view?: string): Promise<ProductItem> {
     // Pre-existing convention: ids are server-issued UUIDs; not URI-encoded.
     // See README. Matches behaviour of `get(productId)` above.
     return this.transport.request<ProductItem>(
       "GET",
       `/services/${serviceId}/items/${itemId}`,
+      view === undefined ? undefined : { params: { view } },
     );
   }
 
@@ -70,6 +71,7 @@ export class ServicesResource extends BaseResource {
    */
   async lookupItems(
     items: ItemLookupRequestItem[],
+    view?: string,
   ): Promise<ItemLookupResponse> {
     if (items.length === 0) {
       throw new Error("items must not be empty");
@@ -82,7 +84,7 @@ export class ServicesResource extends BaseResource {
     return this.transport.request<ItemLookupResponse>(
       "POST",
       "/services/items/lookup",
-      { body: { items } },
+      view === undefined ? { body: { items } } : { params: { view }, body: { items } },
     );
   }
 }

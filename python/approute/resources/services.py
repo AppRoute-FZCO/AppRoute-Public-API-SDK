@@ -24,14 +24,16 @@ _LookupItems = list[ItemLookupRequestItem]
 
 class ServicesResource(BaseResource):
 
-    def list(self) -> ProductListResponse:
+    def list(self, view: str | None = None) -> ProductListResponse:
         """List all products/services in the catalog."""
-        data = self._t.request("GET", "/services")
+        params = {"view": view} if view is not None else None
+        data = self._t.request("GET", "/services", params=params)
         return ProductListResponse.model_validate(data)
 
-    def get(self, product_id: str) -> Product:
+    def get(self, product_id: str, view: str | None = None) -> Product:
         """Get a single product/service by ID."""
-        data = self._t.request("GET", f"/services/{product_id}")
+        params = {"view": view} if view is not None else None
+        data = self._t.request("GET", f"/services/{product_id}", params=params)
         return Product.model_validate(data)
 
     def stock(self, product_id: str) -> ProductStockResponse:
@@ -39,7 +41,7 @@ class ServicesResource(BaseResource):
         data = self._t.request("GET", f"/services/{product_id}/stock")
         return ProductStockResponse.model_validate(data)
 
-    def get_item(self, service_id: str, item_id: str) -> ProductItem:
+    def get_item(self, service_id: str, item_id: str, view: str | None = None) -> ProductItem:
         """Get a single denomination/item from a service by id.
 
         Calls ``GET /services/{service_id}/items/{item_id}`` and returns the
@@ -48,10 +50,13 @@ class ServicesResource(BaseResource):
         """
         # Pre-existing convention: ids are server-issued UUIDs; not URI-encoded.
         # See README. Matches behaviour of `get(product_id)` above.
-        data = self._t.request("GET", f"/services/{service_id}/items/{item_id}")
+        params = {"view": view} if view is not None else None
+        data = self._t.request(
+            "GET", f"/services/{service_id}/items/{item_id}", params=params
+        )
         return ProductItem.model_validate(data)
 
-    def lookup_items(self, items: _LookupItems) -> ItemLookupResponse:
+    def lookup_items(self, items: _LookupItems, view: str | None = None) -> ItemLookupResponse:
         """Batch lookup of up to 100 ``(serviceId, itemId)`` pairs in one
         round-trip.
 
@@ -71,5 +76,8 @@ class ServicesResource(BaseResource):
         # _Base has no alias_generator wired — fields already use snake_case
         # which the transport converts to camelCase on the wire.
         payload = {"items": [it.model_dump() for it in items]}
-        data = self._t.request("POST", "/services/items/lookup", json_body=payload)
+        params = {"view": view} if view is not None else None
+        data = self._t.request(
+            "POST", "/services/items/lookup", params=params, json_body=payload
+        )
         return ItemLookupResponse.model_validate(data)

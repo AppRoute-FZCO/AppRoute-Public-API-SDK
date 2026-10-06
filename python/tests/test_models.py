@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from approute.enums import ProductType
 from tests.factories import (
     make_account,
     make_account_list_response,
@@ -25,6 +26,8 @@ from tests.factories import (
 
 
 class TestProductModels:
+    def test_esim_product_type(self) -> None:
+        assert ProductType.ESIM.value == "esim"
     def test_product_list_response(self) -> None:
         result = make_product_list_response()
         assert len(result.items) == 1
