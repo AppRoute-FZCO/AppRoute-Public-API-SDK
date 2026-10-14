@@ -66,11 +66,12 @@ forwarded consistently. No item image or platform source is introduced here.
 
 **Deployment migration:** the API's compact default changes the response for
 existing callers, including older SDK versions, when the API is deployed.
-Callers that display this metadata must explicitly request full as part of the
-coordinated rollout. Roll out Shop before Public API, then release these SDKs and
-update consumers; do not deploy the compact default independently of affected
-consumer migrations. SDK 1.2.0 adds optional arguments and fields without changing existing
-call syntax; the Go release uses the existing module path and `golang/v1.2.0` tag.
+Deploy Shop first. After resolving the SDK release blocker below, release the
+compatible SDKs and migrate affected callers to explicit `view=full` before
+deploying Public API's compact default. The previous Public API ignores this
+query parameter, so callers can stage it in advance. SDK 1.2.0 adds optional
+arguments and fields without changing existing call syntax; the Go release
+uses the existing module path and `golang/v1.2.0` tag.
 
 **Release blocker:** the current SDK transports expect the legacy string
 `code`/`message` envelope. The current Public API returns numeric

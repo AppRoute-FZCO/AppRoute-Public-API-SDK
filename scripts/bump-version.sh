@@ -2,8 +2,8 @@
 set -euo pipefail
 
 # Usage: ./scripts/bump-version.sh 1.2.3
-# Updates version in all SDK package configs (Python, JS, PHP).
-# Go uses git tags — no file changes needed.
+# Updates package configs and the exported Go runtime version.
+# Go module publication also needs its subdirectory git tag.
 
 VERSION="${1:?Usage: $0 <version>  (e.g. 1.2.3)}"
 
@@ -30,6 +30,15 @@ cd "$ROOT/php"
 tmp=$(mktemp)
 jq --arg v "$VERSION" '.version = $v' composer.json > "$tmp" && mv "$tmp" composer.json
 echo "PHP: $VERSION"
+
+# Go
+cat > "$ROOT/golang/version.go" <<EOF
+package approute
+
+// Version is the semantic version of this SDK.
+const Version = "$VERSION"
+EOF
+echo "Go: $VERSION"
 
 echo ""
 echo "All SDKs updated to v${VERSION}"
