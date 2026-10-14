@@ -19,9 +19,9 @@ final readonly class FundingInvoice
         public string $direction = 'incoming',
         public ?string $memoTag = null,
         public ?string $txHash = null,
-        public ?string $explorerUrl = null,
         public ?int $confirmationsRequired = null,
         public ?int $confirmations = null,
+        public ?string $explorerUrl = null,
     ) {}
 
     /** @param array<string, mixed> $data */

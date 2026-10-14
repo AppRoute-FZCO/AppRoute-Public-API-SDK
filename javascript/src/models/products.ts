@@ -44,10 +44,10 @@ export interface ProductItem {
   isLongOrder?: boolean;
   minQtyToLongOrder?: number;
   amountIsQuantity?: boolean;
-  minQuantity?: number;
-  maxQuantity?: number;
-  stepQuantity?: number;
-  unitPrice?: string;
+  minQuantity?: number | null;
+  maxQuantity?: number | null;
+  stepQuantity?: number | null;
+  unitPrice?: string | null;
 }
 
 /**

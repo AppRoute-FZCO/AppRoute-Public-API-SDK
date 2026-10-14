@@ -1,13 +1,8 @@
-# Catalog operations below include the shared view=compact|full contract.
-# TODO(openapi-coverage): the /services/{id}/stock and /orders paths remain
-# (GET /services, GET /services/{id}, GET /services/{id}/stock, the new
-# GET /services/{service_id}/items/{item_id}, and POST /services/items/lookup)
-# and the /orders paths are NOT yet described here, even though the
-# corresponding Product/ProductItem/PurchaseRequest schemas already are.
-# Until a dedicated catch-up PR lands the missing operations and rewires
-# them to the new ItemLookup* schemas, treat this file as a SCHEMA
-# reference only, not a complete contract. The four language SDKs are the
-# source of truth for the remaining operation set.
+# Catalog operations describe the shared view=compact|full query contract.
+# TODO(openapi-coverage): /services/{id}/stock and /orders paths remain
+# incomplete. Shared response envelopes still use the legacy code/message
+# format; the current API uses statusCode/statusMessage. Do not use this
+# file for client generation until that separate compatibility gap is fixed.
 openapi: 3.1.0
 info:
   title: AppRoute Public API (Data Plane)
@@ -422,7 +417,11 @@ components:
     CatalogView:
       in: query
       name: view
-      description: Response detail level. Omitted defaults to compact.
+      description: >-
+        Omitted defaults to compact. Full includes available imageUrl, section,
+        categoryName, subcategoryName, countryCode, activationCountries and
+        activationGuide metadata. eSIM images also require full. Item responses
+        currently have no view-specific presentation fields.
       required: false
       schema:
         type: string
@@ -611,16 +610,16 @@ components:
       properties:
         label: { type: string }
         value: { type: string }
-        price: { type: number, nullable: true }
+        price: { type: [number, "null"] }
 
     ProductFieldValidation:
       type: object
       additionalProperties: false
       properties:
-        min: { type: number, nullable: true }
-        max: { type: number, nullable: true }
-        pattern: { type: string, nullable: true }
-        message: { type: string, nullable: true }
+        min: { type: [number, "null"] }
+        max: { type: [number, "null"] }
+        pattern: { type: [string, "null"] }
+        message: { type: [string, "null"] }
 
     ProductField:
       type: object
@@ -629,54 +628,51 @@ components:
       properties:
         key: { type: string }
         type: { type: string, enum: [text, masked, select, option_grid, amount_input, summary] }
-        label: { type: string, nullable: true }
+        label: { type: [string, "null"] }
         required: { type: boolean }
         options:
-          type: array
+          type: [array, "null"]
           items: { $ref: "#/components/schemas/ProductFieldOption" }
-        validation: { $ref: "#/components/schemas/ProductFieldValidation" }
+        validation: { anyOf: [{ $ref: "#/components/schemas/ProductFieldValidation" }, { type: "null" }] }
 
     ProductItem:
       type: object
       additionalProperties: false
-      required: [id, name, nominal, price, currency, available]
+      required: [id, price, currency, inStock]
       properties:
         id: { type: string }
-        name: { type: string, nullable: true }
-        nominal: { type: number }
+        name: { type: [string, "null"] }
         price: { type: number }
-        currency: { type: string, enum: [USDT] }
-        available: { type: boolean }
-        stock: { type: integer, nullable: true }
-        inStock: { type: integer, nullable: true }
-        isLongOrder: { type: boolean, nullable: true }
-        minQtyToLongOrder: { type: integer, nullable: true }
-        amountIsQuantity: { type: boolean, nullable: true }
-        minQuantity: { type: integer, nullable: true }
-        maxQuantity: { type: integer, nullable: true }
-        stepQuantity: { type: integer, nullable: true }
-        unitPrice: { type: string, nullable: true }
+        currency: { type: string }
+        inStock: { type: integer }
+        isLongOrder: { type: [boolean, "null"] }
+        minQtyToLongOrder: { type: [integer, "null"] }
+        amountIsQuantity: { type: boolean }
+        minQuantity: { type: [integer, "null"] }
+        maxQuantity: { type: [integer, "null"] }
+        stepQuantity: { type: [integer, "null"] }
+        unitPrice: { type: [string, "null"] }
 
     Product:
       type: object
       additionalProperties: false
-      required: [id, name, type, items]
+      required: [id, type, items]
       properties:
         id: { type: string }
-        name: { type: string, nullable: true }
+        name: { type: [string, "null"] }
         type: { $ref: "#/components/schemas/ProductType" }
-        section: { type: string, nullable: true }
-        imageUrl: { type: string, nullable: true }
-        countryCode: { type: string, nullable: true }
-        categoryName: { type: string, nullable: true }
-        subcategoryName: { type: string, nullable: true }
-        activationCountries: { type: string, nullable: true }
-        activationGuide: { type: string, nullable: true }
+        section: { type: [string, "null"] }
+        imageUrl: { type: [string, "null"] }
+        countryCode: { type: [string, "null"] }
+        categoryName: { type: [string, "null"] }
+        subcategoryName: { type: [string, "null"] }
+        activationCountries: { type: [string, "null"] }
+        activationGuide: { type: [string, "null"] }
         items:
           type: array
           items: { $ref: "#/components/schemas/ProductItem" }
         fields:
-          type: array
+          type: [array, "null"]
           items: { $ref: "#/components/schemas/ProductField" }
 
     ItemLookupRequestItem:
@@ -706,8 +702,8 @@ components:
         serviceId: { type: string }
         itemId: { type: string }
         found: { type: boolean }
-        item: { allOf: [{ $ref: "#/components/schemas/ProductItem" }], nullable: true }
-        error: { type: string, nullable: true }
+        item: { anyOf: [{ $ref: "#/components/schemas/ProductItem" }, { type: "null" }] }
+        error: { type: [string, "null"] }
 
     ItemLookupResponse:
       type: object
@@ -721,12 +717,12 @@ components:
     ProductListResponse:
       type: object
       additionalProperties: false
-      required: [items, hasNext]
+      required: [items]
       properties:
         items:
           type: array
           items: { $ref: "#/components/schemas/Product" }
-        hasNext: { type: boolean }
+        total: { type: integer, description: Only returned for paginated requests. }
 
     ProductStockItem:
       type: object
@@ -907,7 +903,7 @@ components:
         memoTag: { type: string, nullable: true }
         address: { type: string }
         txHash: { type: string, nullable: true }
-        explorerUrl: { type: string, nullable: true }
+        explorerUrl: { type: [string, "null"] }
         status: { $ref: "#/components/schemas/FundingStatus" }
         confirmationsRequired: { type: integer, nullable: true }
         confirmations: { type: integer, nullable: true }

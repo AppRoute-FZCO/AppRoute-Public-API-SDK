@@ -26,14 +26,14 @@ func NewServices(t Transport) *ServicesResource {
 	return &ServicesResource{t: t}
 }
 
-// List returns all products in the catalog.
 func catalogViewParams(view []string) url.Values {
-	if len(view) == 0 || view[0] == "" {
+	if len(view) == 0 {
 		return nil
 	}
 	return url.Values{"view": []string{view[0]}}
 }
 
+// List returns all products in the catalog. Omitting view uses compact.
 func (r *ServicesResource) List(ctx context.Context, view ...string) (*model.ProductListResponse, error) {
 	raw, err := r.t.Request(ctx, "GET", "/services", catalogViewParams(view), nil)
 	if err != nil {

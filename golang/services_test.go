@@ -19,6 +19,25 @@ func TestProductTypeESIM(t *testing.T) {
 	assertEqual(t, "ProductESIM", string(enum.ProductESIM), "esim")
 }
 
+func TestProductFullCatalogMetadataFromWire(t *testing.T) {
+	var product model.Product
+	err := json.Unmarshal([]byte(`{"id":"svc-1","name":null,"type":"esim","fields":null,
+		"imageUrl":"https://flagcdn.com/us.svg","section":"esim",
+		"activationCountries":"US","activationGuide":"Scan QR code",
+		"items":[{"id":"item-1","price":9.5,"currency":"USD","inStock":10}]}`), &product)
+	if err != nil {
+		t.Fatalf("decode full catalog: %v", err)
+	}
+	if product.ImageURL == nil || product.ActivationCountries == nil || product.ActivationGuide == nil || product.Section == nil || product.Items[0].InStock == nil {
+		t.Fatal("missing full catalog metadata")
+	}
+	assertEqual(t, "ImageURL", *product.ImageURL, "https://flagcdn.com/us.svg")
+	assertEqual(t, "ActivationCountries", *product.ActivationCountries, "US")
+	assertEqual(t, "ActivationGuide", *product.ActivationGuide, "Scan QR code")
+	assertEqual(t, "Section", *product.Section, "esim")
+	assertEqual(t, "InStock", *product.Items[0].InStock, 10)
+}
+
 func TestServicesResource_List(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assertEqual(t, "Method", r.Method, "GET")
@@ -90,6 +109,22 @@ func TestServicesResource_ListForwardsView(t *testing.T) {
 
 	client := approute.NewClient("test-key", approute.WithBaseURL(srv.URL), approute.WithMaxRetries(0))
 	if _, err := client.Services.List(t.Context(), "full"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestServicesResource_ListForwardsExplicitEmptyView(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !r.URL.Query().Has("view") {
+			t.Error("explicit empty view must reach API validation")
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(successEnvelope(t, newProductListResponse(newProduct())))
+	}))
+	defer srv.Close()
+
+	client := approute.NewClient("test-key", approute.WithBaseURL(srv.URL), approute.WithMaxRetries(0))
+	if _, err := client.Services.List(t.Context(), ""); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }

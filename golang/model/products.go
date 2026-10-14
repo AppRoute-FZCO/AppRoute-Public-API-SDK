@@ -46,7 +46,7 @@ type ProductItem struct {
 	UnitPrice         *string `json:"unitPrice,omitempty"`
 }
 
-// Product is a catalog entry (voucher or direct top-up).
+// Product is a catalog entry (voucher, direct top-up, or eSIM).
 type Product struct {
 	ID                  string           `json:"id"`
 	Name                *string          `json:"name,omitempty"`

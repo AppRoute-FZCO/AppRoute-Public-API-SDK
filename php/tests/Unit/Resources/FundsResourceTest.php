@@ -104,6 +104,17 @@ final class FundsResourceTest extends TestCase
         $this->assertSame('inv-001', $result->id);
     }
 
+    public function testGetInvoicePreservesExplorerUrl(): void
+    {
+        $this->transport->setResponse(FundFactory::makeInvoiceData([
+            'explorerUrl' => 'https://tronscan.org/#/transaction/hash',
+        ]));
+
+        $result = $this->resource->getInvoice('inv-001');
+
+        $this->assertSame('https://tronscan.org/#/transaction/hash', $result->explorerUrl);
+    }
+
     public function testGetInvoiceCallsCorrectEndpoint(): void
     {
         $this->transport->setResponse(FundFactory::makeInvoiceData());

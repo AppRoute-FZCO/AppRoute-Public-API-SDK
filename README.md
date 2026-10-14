@@ -58,6 +58,26 @@ GET /services?view=full
 The same parameter is supported by the service, single-item, and batch-lookup
 methods in every SDK. Unknown values are rejected by the API with HTTP 422.
 
+Full product responses include available `imageUrl`, `section`, `categoryName`,
+`subcategoryName`, `countryCode`, `activationCountries`, and `activationGuide`.
+These keys are omitted when unavailable. eSIM images also require full. Single
+items currently have no extra presentation metadata; their view parameter is
+forwarded consistently. No item image or platform source is introduced here.
+
+**Deployment migration:** the API's compact default changes the response for
+existing callers, including older SDK versions, when the API is deployed.
+Callers that display this metadata must explicitly request full as part of the
+coordinated rollout. Roll out Shop before Public API, then release these SDKs and
+update consumers; do not deploy the compact default independently of affected
+consumer migrations. SDK 1.2.0 adds optional arguments and fields without changing existing
+call syntax; the Go release uses the existing module path and `golang/v1.2.0` tag.
+
+**Release blocker:** the current SDK transports expect the legacy string
+`code`/`message` envelope. The current Public API returns numeric
+`statusCode`/`statusMessage`. That existing incompatibility must be resolved and
+verified in all four languages before publishing this SDK release. The catalog
+method tests do not establish compatibility with the current API envelope.
+
 ## Authentication
 
 All endpoints use API key authentication via `X-API-Key` header. The SDK handles this automatically.
@@ -69,6 +89,12 @@ All API responses use a unified envelope format. The SDKs automatically:
 - Throw/return typed errors for failed responses with `code`, `message`, `traceId`, and field-level `errors`
 
 ## Changelog
+
+### 1.2.0 (unreleased)
+
+Adds compact/full catalog views in all four SDKs, optional product presentation
+and quantity-mode metadata, the eSIM product type, and nullable
+`FundingInvoice.explorerUrl`. See the catalog migration and release blocker above.
 
 ### 1.1.0
 
