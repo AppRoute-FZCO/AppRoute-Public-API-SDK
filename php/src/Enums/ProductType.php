@@ -8,4 +8,5 @@ enum ProductType: string
 {
     case VOUCHER = 'voucher';
     case DIRECT_TOPUP = 'direct_topup';
+    case ESIM = 'esim';
 }

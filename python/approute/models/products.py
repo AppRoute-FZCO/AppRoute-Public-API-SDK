@@ -31,18 +31,27 @@ class ProductItem(_Base):
     currency: str
     available: bool | None = None
     stock: int | None = None
+    in_stock: int | None = None
     is_long_order: bool | None = None
     min_qty_to_long_order: int | None = None
+    amount_is_quantity: bool | None = None
+    min_quantity: int | None = None
+    max_quantity: int | None = None
+    step_quantity: int | None = None
+    unit_price: str | None = None
 
 
 class Product(_Base):
     id: str
     name: str | None = None
     type: str
+    section: str | None = None
     image_url: str | None = None
     country_code: str | None = None
     category_name: str | None = None
     subcategory_name: str | None = None
+    activation_countries: str | None = None
+    activation_guide: str | None = None
     items: list[ProductItem] = []
     fields: list[ProductField] | None = None
 

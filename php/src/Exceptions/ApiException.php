@@ -13,6 +13,8 @@ class ApiException extends AppRouteException
         public readonly string $traceId,
         public readonly int $statusCode,
         public readonly array $errors = [],
+        public readonly ?int $apiStatusCode = null,
+        public readonly ?string $apiErrorCode = null,
     ) {
         $msg = "[{$errorCode}] {$message} (trace_id={$traceId})";
         foreach ($errors as $err) {
@@ -28,6 +30,8 @@ class ApiException extends AppRouteException
         string $traceId,
         int $statusCode,
         array $errors = [],
+        ?int $apiStatusCode = null,
+        ?string $apiErrorCode = null,
     ): self {
         $class = match ($code) {
             'VALIDATION_ERROR' => ValidationException::class,
@@ -40,9 +44,11 @@ class ApiException extends AppRouteException
             'INSUFFICIENT_FUNDS' => InsufficientFundsException::class,
             'UPSTREAM_ERROR' => UpstreamException::class,
             'INTERNAL_ERROR' => InternalException::class,
+            'API_KEY_LIMIT_EXCEEDED' => ConflictException::class,
+            'PROVIDER_UNAVAILABLE' => UpstreamException::class,
             default => self::class,
         };
 
-        return new $class($code, $message, $traceId, $statusCode, $errors);
+        return new $class($code, $message, $traceId, $statusCode, $errors, $apiStatusCode, $apiErrorCode);
     }
 }

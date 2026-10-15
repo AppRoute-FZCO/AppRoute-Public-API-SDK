@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	approute "github.com/approute/public-api-sdk-go"
+	approute "github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang"
 )
 
 func ExampleNewClient() {

@@ -40,8 +40,14 @@ export interface ProductItem {
   currency: string;
   available?: boolean;
   stock?: number;
+  inStock?: number;
   isLongOrder?: boolean;
   minQtyToLongOrder?: number;
+  amountIsQuantity?: boolean;
+  minQuantity?: number | null;
+  maxQuantity?: number | null;
+  stepQuantity?: number | null;
+  unitPrice?: string | null;
 }
 
 /**
@@ -51,10 +57,13 @@ export interface Product {
   id: string;
   name?: string;
   type: string;
+  section?: string;
   imageUrl?: string;
   countryCode?: string;
   categoryName?: string;
   subcategoryName?: string;
+  activationCountries?: string;
+  activationGuide?: string;
   items: ProductItem[];
   fields?: ProductField[];
 }

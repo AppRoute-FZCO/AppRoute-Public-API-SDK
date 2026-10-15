@@ -50,6 +50,13 @@ class TestFundsCreateInvoice:
         assert isinstance(result, FundingInvoice)
         assert result.id == "inv-001"
 
+    def test_decodes_explorer_url(self, resource: FundsResource, transport: MockTransport) -> None:
+        transport.set_response(
+            make_funding_invoice(explorer_url="https://tronscan.org/#/transaction/0xabc")
+        )
+        result = resource.create_invoice(method_code="USDT_TRC20", amount=100.0)
+        assert result.explorer_url == "https://tronscan.org/#/transaction/0xabc"
+
     def test_sends_body(self, resource: FundsResource, transport: MockTransport) -> None:
         transport.set_response(make_funding_invoice())
         resource.create_invoice(method_code="USDT_TRC20", amount=100.0)

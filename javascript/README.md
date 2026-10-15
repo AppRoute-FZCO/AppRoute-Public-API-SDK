@@ -55,6 +55,9 @@ for (const row of lookup.items) {
   }
 }
 
+// Request the full allowlisted catalog metadata (compact is the default).
+const fullCatalog = await client.services.list("full");
+
 // Purchase a voucher
 const order = await client.orders.create({
   ordersType: "shop",

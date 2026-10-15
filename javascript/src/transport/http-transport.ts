@@ -6,6 +6,23 @@ import {
 import type { FieldError } from "../models/common.js";
 
 const SUCCESS_CODES = new Set(["OK", "ACCEPTED", "IDEMPOTENCY_REPLAY"]);
+const STATUS_CODES: Readonly<Record<number, string>> = {
+  0: "OK",
+  1: "ACCEPTED",
+  2: "IDEMPOTENCY_REPLAY",
+  3: "VALIDATION_ERROR",
+  4: "UNAUTHORIZED",
+  5: "FORBIDDEN",
+  6: "NOT_FOUND",
+  7: "CONFLICT",
+  8: "LIMIT_REACHED",
+  9: "OUT_OF_STOCK",
+  10: "INSUFFICIENT_FUNDS",
+  11: "UPSTREAM_ERROR",
+  12: "INTERNAL_ERROR",
+  13: "API_KEY_LIMIT_EXCEEDED",
+  14: "PROVIDER_UNAVAILABLE",
+};
 const RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503, 504]);
 const RETRY_BACKOFF_BASE = 1000; // milliseconds
 
@@ -113,23 +130,43 @@ export class HttpTransport {
       );
     }
 
-    const code = (body.code as string) ?? "";
-    const message = (body.message as string) ?? "";
-    const traceId = (body.traceId as string) ?? "";
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      throw new AppRouteError(`Invalid API response envelope (HTTP ${response.status})`);
+    }
 
-    if (SUCCESS_CODES.has(code)) {
+    let code: string;
+    let message: string;
+    let apiStatusCode: number | undefined;
+    if (Object.hasOwn(body, "statusCode")) {
+      if (typeof body.statusCode !== "number" || !Number.isSafeInteger(body.statusCode)) {
+        throw new AppRouteError(`Invalid API response envelope (HTTP ${response.status})`);
+      }
+      apiStatusCode = body.statusCode;
+      code = STATUS_CODES[apiStatusCode] ?? String(apiStatusCode);
+      message = (body.statusMessage as string) ?? "";
+    } else {
+      if (typeof body.code !== "string" || !body.code) {
+        throw new AppRouteError(`Invalid API response envelope (HTTP ${response.status})`);
+      }
+      code = body.code;
+      message = (body.message as string) ?? "";
+    }
+    const traceId = (body.traceId as string) ?? "";
+    const apiErrorCode = (body.errorCode as string | null) ?? undefined;
+    const rawErrors = (body.errors as Array<Record<string, string>>) ?? [];
+
+    if (response.status >= 200 && response.status < 300 && SUCCESS_CODES.has(code) && !rawErrors.length && !apiErrorCode) {
       return body.data as T;
     }
 
     // Parse field-level errors
-    const rawErrors = (body.errors as Array<Record<string, string>>) ?? [];
     const fieldErrors: FieldError[] = rawErrors.map((e) => ({
       field: e.field ?? "",
       code: e.code ?? "",
       message: e.message ?? "",
     }));
 
-    raiseForCode(code, message, traceId, response.status, fieldErrors);
+    raiseForCode(code, message, traceId, response.status, fieldErrors, apiStatusCode, apiErrorCode);
   }
 
   /**

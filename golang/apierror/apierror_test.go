@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/approute/public-api-sdk-go/model"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/model"
 )
 
 func assertEqual[T comparable](t *testing.T, fieldName string, got, want T) {

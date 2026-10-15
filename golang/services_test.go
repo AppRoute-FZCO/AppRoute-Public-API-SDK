@@ -9,11 +9,34 @@ import (
 	"strconv"
 	"testing"
 
-	approute "github.com/approute/public-api-sdk-go"
-	"github.com/approute/public-api-sdk-go/apierror"
-	"github.com/approute/public-api-sdk-go/enum"
-	"github.com/approute/public-api-sdk-go/model"
+	approute "github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/apierror"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/enum"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/model"
 )
+
+func TestProductTypeESIM(t *testing.T) {
+	assertEqual(t, "ProductESIM", string(enum.ProductESIM), "esim")
+}
+
+func TestProductFullCatalogMetadataFromWire(t *testing.T) {
+	var product model.Product
+	err := json.Unmarshal([]byte(`{"id":"svc-1","name":null,"type":"esim","fields":null,
+		"imageUrl":"https://flagcdn.com/us.svg","section":"esim",
+		"activationCountries":"US","activationGuide":"Scan QR code",
+		"items":[{"id":"item-1","price":9.5,"currency":"USD","inStock":10}]}`), &product)
+	if err != nil {
+		t.Fatalf("decode full catalog: %v", err)
+	}
+	if product.ImageURL == nil || product.ActivationCountries == nil || product.ActivationGuide == nil || product.Section == nil || product.Items[0].InStock == nil {
+		t.Fatal("missing full catalog metadata")
+	}
+	assertEqual(t, "ImageURL", *product.ImageURL, "https://flagcdn.com/us.svg")
+	assertEqual(t, "ActivationCountries", *product.ActivationCountries, "US")
+	assertEqual(t, "ActivationGuide", *product.ActivationGuide, "Scan QR code")
+	assertEqual(t, "Section", *product.Section, "esim")
+	assertEqual(t, "InStock", *product.Items[0].InStock, 10)
+}
 
 func TestServicesResource_List(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -76,6 +99,36 @@ func TestServicesResource_List(t *testing.T) {
 	assertEqual(t, "Items[1].Fields[0].Required", result.Items[1].Fields[0].Required, true)
 }
 
+func TestServicesResource_ListForwardsView(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assertEqual(t, "view", r.URL.Query().Get("view"), "full")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(successEnvelope(t, newProductListResponse(newProduct())))
+	}))
+	defer srv.Close()
+
+	client := approute.NewClient("test-key", approute.WithBaseURL(srv.URL), approute.WithMaxRetries(0))
+	if _, err := client.Services.List(t.Context(), "full"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestServicesResource_ListForwardsExplicitEmptyView(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !r.URL.Query().Has("view") {
+			t.Error("explicit empty view must reach API validation")
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(successEnvelope(t, newProductListResponse(newProduct())))
+	}))
+	defer srv.Close()
+
+	client := approute.NewClient("test-key", approute.WithBaseURL(srv.URL), approute.WithMaxRetries(0))
+	if _, err := client.Services.List(t.Context(), ""); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
 func TestServicesResource_Get(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assertEqual(t, "Method", r.Method, "GET")
@@ -97,6 +150,20 @@ func TestServicesResource_Get(t *testing.T) {
 	}
 	assertEqual(t, "Name", *product.Name, "Steam Wallet 10 USD")
 	assertEqual(t, "Type", string(product.Type), "voucher")
+}
+
+func TestServicesResource_GetForwardsView(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assertEqual(t, "view", r.URL.Query().Get("view"), "full")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(successEnvelope(t, newProduct()))
+	}))
+	defer srv.Close()
+
+	client := approute.NewClient("test-key", approute.WithBaseURL(srv.URL), approute.WithMaxRetries(0))
+	if _, err := client.Services.Get(t.Context(), "prod-1", "full"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 }
 
 func TestServicesResource_Stock(t *testing.T) {
@@ -178,6 +245,20 @@ func TestServicesResource_GetItem(t *testing.T) {
 	assertEqual(t, "Price", item.Price, 12.34)
 }
 
+func TestServicesResource_GetItemForwardsView(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assertEqual(t, "view", r.URL.Query().Get("view"), "full")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(successEnvelope(t, newProductItem()))
+	}))
+	defer srv.Close()
+
+	client := approute.NewClient("test-key", approute.WithBaseURL(srv.URL), approute.WithMaxRetries(0))
+	if _, err := client.Services.GetItem(t.Context(), "svc-1", "item-1", "full"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
 func TestServicesResource_GetItem_NotFound(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(404)
@@ -256,6 +337,20 @@ func TestServicesResource_LookupItems_HappyPath(t *testing.T) {
 		t.Error("Items[2].Item should be nil for a miss row")
 	}
 	assertEqual(t, "Items[2].Error", resp.Items[2].Error, "item_not_found")
+}
+
+func TestServicesResource_LookupItemsForwardsView(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assertEqual(t, "view", r.URL.Query().Get("view"), "full")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(successEnvelope(t, newItemLookupResponse()))
+	}))
+	defer srv.Close()
+
+	client := approute.NewClient("test-key", approute.WithBaseURL(srv.URL), approute.WithMaxRetries(0))
+	if _, err := client.Services.LookupItems(t.Context(), []model.ItemLookupRequestItem{{ServiceID: "svc-1", ItemID: "item-1"}}, "full"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 }
 
 func TestServicesResource_LookupItems_PreservesInputOrder(t *testing.T) {
@@ -345,4 +440,3 @@ func TestServicesResource_LookupItems_OversizedInputRejectedClientSide(t *testin
 		t.Errorf("error message should mention the cap; got: %v", err)
 	}
 }
-

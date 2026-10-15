@@ -21,6 +21,8 @@ class ApiError(Exception):
     trace_id: str
     status_code: int
     errors: list[FieldError] = field(default_factory=list)
+    api_status_code: int | None = None
+    api_error_code: str | None = None
 
     def __str__(self) -> str:
         parts = [f"[{self.code}] {self.message} (trace_id={self.trace_id})"]

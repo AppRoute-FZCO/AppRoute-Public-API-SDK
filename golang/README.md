@@ -15,8 +15,15 @@ the matching dashboard: `https://approute.io/dashboard` or
 ## Installation
 
 ```bash
-go get github.com/approute/public-api-sdk-go
+go get github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang
 ```
+
+This module lives in the repository's `golang/` subdirectory. Version 1.2.0
+requires a `golang/v1.2.0` tag; a root `v1.2.0` tag alone does not publish a Go
+module version. Until publication, do not assume that `@v1.2.0` is available.
+Update imports and go.mod requirements from the previously documented
+`github.com/approute/public-api-sdk-go` path to the path above; that separate
+source repository is unavailable and no redirect is assumed.
 
 ## Quick Start
 
@@ -28,8 +35,8 @@ import (
 	"fmt"
 	"log"
 
-	approute "github.com/approute/public-api-sdk-go"
-	"github.com/approute/public-api-sdk-go/model"
+	approute "github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/model"
 )
 
 func main() {
@@ -69,6 +76,13 @@ func main() {
 			fmt.Printf("%s/%s: MISSING (%s)\n", row.ServiceID, row.ItemID, row.Error)
 		}
 	}
+
+	// Request full allowlisted catalog metadata; omitted view is compact.
+	fullCatalog, err := client.Services.List(ctx, "full")
+	if err != nil {
+		log.Fatal(err)
+	}
+	_ = fullCatalog
 
 	// Get account balances
 	balances, err := client.Accounts.Balances(ctx)
@@ -138,7 +152,7 @@ Use `errors.As` to inspect the specific error type:
 import (
 	"errors"
 
-	"github.com/approute/public-api-sdk-go/apierror"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/apierror"
 )
 
 products, err := client.Services.List(ctx)

@@ -9,8 +9,10 @@ export class ValidationError extends ApiError {
     traceId: string,
     statusCode: number,
     errors: FieldError[] = [],
+    apiStatusCode?: number,
+    apiErrorCode?: string,
   ) {
-    super(code, message, traceId, statusCode, errors);
+    super(code, message, traceId, statusCode, errors, apiStatusCode, apiErrorCode);
     this.name = "ValidationError";
   }
 }
@@ -23,8 +25,10 @@ export class UnauthorizedError extends ApiError {
     traceId: string,
     statusCode: number,
     errors: FieldError[] = [],
+    apiStatusCode?: number,
+    apiErrorCode?: string,
   ) {
-    super(code, message, traceId, statusCode, errors);
+    super(code, message, traceId, statusCode, errors, apiStatusCode, apiErrorCode);
     this.name = "UnauthorizedError";
   }
 }
@@ -37,8 +41,10 @@ export class ForbiddenError extends ApiError {
     traceId: string,
     statusCode: number,
     errors: FieldError[] = [],
+    apiStatusCode?: number,
+    apiErrorCode?: string,
   ) {
-    super(code, message, traceId, statusCode, errors);
+    super(code, message, traceId, statusCode, errors, apiStatusCode, apiErrorCode);
     this.name = "ForbiddenError";
   }
 }
@@ -51,8 +57,10 @@ export class NotFoundError extends ApiError {
     traceId: string,
     statusCode: number,
     errors: FieldError[] = [],
+    apiStatusCode?: number,
+    apiErrorCode?: string,
   ) {
-    super(code, message, traceId, statusCode, errors);
+    super(code, message, traceId, statusCode, errors, apiStatusCode, apiErrorCode);
     this.name = "NotFoundError";
   }
 }
@@ -65,8 +73,10 @@ export class ConflictError extends ApiError {
     traceId: string,
     statusCode: number,
     errors: FieldError[] = [],
+    apiStatusCode?: number,
+    apiErrorCode?: string,
   ) {
-    super(code, message, traceId, statusCode, errors);
+    super(code, message, traceId, statusCode, errors, apiStatusCode, apiErrorCode);
     this.name = "ConflictError";
   }
 }
@@ -79,8 +89,10 @@ export class RateLimitedError extends ApiError {
     traceId: string,
     statusCode: number,
     errors: FieldError[] = [],
+    apiStatusCode?: number,
+    apiErrorCode?: string,
   ) {
-    super(code, message, traceId, statusCode, errors);
+    super(code, message, traceId, statusCode, errors, apiStatusCode, apiErrorCode);
     this.name = "RateLimitedError";
   }
 }
@@ -93,8 +105,10 @@ export class OutOfStockError extends ApiError {
     traceId: string,
     statusCode: number,
     errors: FieldError[] = [],
+    apiStatusCode?: number,
+    apiErrorCode?: string,
   ) {
-    super(code, message, traceId, statusCode, errors);
+    super(code, message, traceId, statusCode, errors, apiStatusCode, apiErrorCode);
     this.name = "OutOfStockError";
   }
 }
@@ -107,8 +121,10 @@ export class InsufficientFundsError extends ApiError {
     traceId: string,
     statusCode: number,
     errors: FieldError[] = [],
+    apiStatusCode?: number,
+    apiErrorCode?: string,
   ) {
-    super(code, message, traceId, statusCode, errors);
+    super(code, message, traceId, statusCode, errors, apiStatusCode, apiErrorCode);
     this.name = "InsufficientFundsError";
   }
 }
@@ -121,8 +137,10 @@ export class UpstreamError extends ApiError {
     traceId: string,
     statusCode: number,
     errors: FieldError[] = [],
+    apiStatusCode?: number,
+    apiErrorCode?: string,
   ) {
-    super(code, message, traceId, statusCode, errors);
+    super(code, message, traceId, statusCode, errors, apiStatusCode, apiErrorCode);
     this.name = "UpstreamError";
   }
 }
@@ -135,8 +153,10 @@ export class InternalError extends ApiError {
     traceId: string,
     statusCode: number,
     errors: FieldError[] = [],
+    apiStatusCode?: number,
+    apiErrorCode?: string,
   ) {
-    super(code, message, traceId, statusCode, errors);
+    super(code, message, traceId, statusCode, errors, apiStatusCode, apiErrorCode);
     this.name = "InternalError";
   }
 }
@@ -152,6 +172,8 @@ const CODE_TO_ERROR: Record<
     traceId: string,
     statusCode: number,
     errors: FieldError[],
+    apiStatusCode?: number,
+    apiErrorCode?: string,
   ) => ApiError
 > = {
   VALIDATION_ERROR: ValidationError,
@@ -164,6 +186,8 @@ const CODE_TO_ERROR: Record<
   INSUFFICIENT_FUNDS: InsufficientFundsError,
   UPSTREAM_ERROR: UpstreamError,
   INTERNAL_ERROR: InternalError,
+  API_KEY_LIMIT_EXCEEDED: ConflictError,
+  PROVIDER_UNAVAILABLE: UpstreamError,
 };
 
 /**
@@ -175,7 +199,9 @@ export function raiseForCode(
   traceId: string,
   statusCode: number,
   errors: FieldError[] = [],
+  apiStatusCode?: number,
+  apiErrorCode?: string,
 ): never {
   const ErrorClass = CODE_TO_ERROR[code] ?? ApiError;
-  throw new ErrorClass(code, message, traceId, statusCode, errors);
+  throw new ErrorClass(code, message, traceId, statusCode, errors, apiStatusCode, apiErrorCode);
 }

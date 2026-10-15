@@ -46,6 +46,10 @@ for row in resp.items:
     else:
         print(f"{row.service_id}/{row.item_id}: MISSING ({row.error})")
 
+# Full catalog metadata (images, descriptions and activation guidance).
+# The default view is compact for backwards-compatible payloads.
+full_catalog = client.services.list(view="full")
+
 # Create an order
 order = client.orders.create(
     orders_type="shop",

@@ -65,6 +65,7 @@ describe("FundsResource", () => {
       expect(result.status).toBe("pending");
       expect(result.address).toBe("TXyz123abc");
       expect(result.direction).toBe("incoming");
+      expect(result.explorerUrl).toBeNull();
     });
 
     it("should call POST /funds/invoices with correct body", async () => {
@@ -83,6 +84,20 @@ describe("FundsResource", () => {
         methodCode: "USDT_TRC20",
         amount: 100,
       });
+    });
+
+    it("should expose explorerUrl when supplied", async () => {
+      const mock = new MockTransport(
+        makeFundingInvoice({ explorerUrl: "https://tronscan.org/#/transaction/0xabc" }),
+      );
+      const resource = new FundsResource(mock.transport);
+
+      const result = await resource.createInvoice({
+        methodCode: "USDT_TRC20",
+        amount: 100,
+      });
+
+      expect(result.explorerUrl).toBe("https://tronscan.org/#/transaction/0xabc");
     });
   });
 

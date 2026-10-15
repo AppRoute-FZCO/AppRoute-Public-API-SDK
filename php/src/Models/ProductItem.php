@@ -16,6 +16,12 @@ final readonly class ProductItem
         public ?int $stock = null,
         public ?bool $isLongOrder = null,
         public ?int $minQtyToLongOrder = null,
+        public ?int $inStock = null,
+        public ?bool $amountIsQuantity = null,
+        public ?int $minQuantity = null,
+        public ?int $maxQuantity = null,
+        public ?int $stepQuantity = null,
+        public ?string $unitPrice = null,
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -29,8 +35,14 @@ final readonly class ProductItem
             currency: $data['currency'] ?? 'USDT',
             available: $data['available'] ?? null,
             stock: $data['stock'] ?? null,
+            inStock: $data['inStock'] ?? null,
             isLongOrder: $data['isLongOrder'] ?? null,
             minQtyToLongOrder: $data['minQtyToLongOrder'] ?? null,
+            amountIsQuantity: $data['amountIsQuantity'] ?? null,
+            minQuantity: $data['minQuantity'] ?? null,
+            maxQuantity: $data['maxQuantity'] ?? null,
+            stepQuantity: $data['stepQuantity'] ?? null,
+            unitPrice: $data['unitPrice'] ?? null,
         );
     }
 }

@@ -21,6 +21,7 @@ final readonly class FundingInvoice
         public ?string $txHash = null,
         public ?int $confirmationsRequired = null,
         public ?int $confirmations = null,
+        public ?string $explorerUrl = null,
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -39,6 +40,7 @@ final readonly class FundingInvoice
             direction: $data['direction'] ?? 'incoming',
             memoTag: $data['memoTag'] ?? null,
             txHash: $data['txHash'] ?? null,
+            explorerUrl: $data['explorerUrl'] ?? null,
             confirmationsRequired: $data['confirmationsRequired'] ?? null,
             confirmations: $data['confirmations'] ?? null,
         );

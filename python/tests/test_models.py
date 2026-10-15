@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from approute._transport._base import convert_keys_to_snake
+from approute.enums import ProductType
+from approute.models import Product
 from tests.factories import (
     make_account,
     make_account_list_response,
@@ -25,6 +28,23 @@ from tests.factories import (
 
 
 class TestProductModels:
+    def test_esim_product_type(self) -> None:
+        assert ProductType.ESIM.value == "esim"
+
+    def test_full_catalog_metadata_from_wire(self) -> None:
+        product = Product.model_validate(convert_keys_to_snake({
+            "id": "svc-1", "name": None, "type": "esim", "fields": None,
+            "imageUrl": "https://flagcdn.com/us.svg", "section": "esim",
+            "activationCountries": "US", "activationGuide": "Scan QR code",
+            "items": [{"id": "item-1", "price": 9.5, "currency": "USD", "inStock": 10}],
+        }))
+        assert product.image_url == "https://flagcdn.com/us.svg"
+        assert product.activation_countries == "US"
+        assert product.activation_guide == "Scan QR code"
+        assert product.section == "esim"
+        assert product.items[0].in_stock == 10
+        assert product.items[0].nominal is None
+
     def test_product_list_response(self) -> None:
         result = make_product_list_response()
         assert len(result.items) == 1

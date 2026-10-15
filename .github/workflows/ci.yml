@@ -90,6 +90,27 @@ jobs:
           php-version: "8.3"
           tools: composer
 
+      - name: Validate Composer manifests
+        run: |
+          composer validate --no-check-lock
+          composer validate --no-check-lock ../composer.json
+
+      - name: Install root distribution
+        working-directory: .
+        run: composer install --no-dev --no-interaction --prefer-dist
+
+      - name: Check root distribution autoload
+        working-directory: .
+        run: |
+          php -r '
+            require "vendor/autoload.php";
+            $client = new AppRoute\Sdk\AppRouteClient(apiKey: "ci-smoke");
+            if (!($client->services instanceof AppRoute\Sdk\Resources\ServicesResource)) {
+                throw new RuntimeException("Root distribution did not load SDK resources");
+            }
+            echo "Root Composer distribution autoload OK\n";
+          '
+
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
 

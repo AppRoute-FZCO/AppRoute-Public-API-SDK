@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/approute/public-api-sdk-go/enum"
-	"github.com/approute/public-api-sdk-go/model"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/enum"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/model"
 )
 
 // FundsResource provides access to funding methods, invoices, TON and Bybit

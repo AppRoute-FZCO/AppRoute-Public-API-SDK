@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/approute/public-api-sdk-go/enum"
-	"github.com/approute/public-api-sdk-go/model"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/enum"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/model"
 )
 
 // AccountsResource provides access to account balance and transaction endpoints.

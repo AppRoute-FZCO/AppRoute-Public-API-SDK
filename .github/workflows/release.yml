@@ -13,9 +13,20 @@ env:
   REGISTRY_HOST: ${{ secrets.REGISTRY_HOST }}
 
 jobs:
+  validate:
+    name: Verify release versions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python scripts/check-release-version.py "${GITHUB_REF_NAME}"
+
   python:
     name: Publish Python SDK to private PyPI
     runs-on: ubuntu-latest
+    needs: validate
     defaults:
       run:
         working-directory: python
@@ -47,6 +58,7 @@ jobs:
   javascript:
     name: Publish JS/TS SDK to private npm (Verdaccio)
     runs-on: ubuntu-latest
+    needs: validate
     defaults:
       run:
         working-directory: javascript
@@ -62,7 +74,7 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Set version from tag
-        run: npm version "${GITHUB_REF_NAME#v}" --no-git-tag-version
+        run: npm version "${GITHUB_REF_NAME#v}" --no-git-tag-version --allow-same-version
 
       - name: Build
         run: npm run build
@@ -75,6 +87,7 @@ jobs:
   php:
     name: Rebuild Satis index (PHP/Composer)
     runs-on: ubuntu-latest
+    needs: validate
     steps:
       - name: Trigger Satis rebuild via SSH
         uses: appleboy/ssh-action@v1
@@ -89,6 +102,7 @@ jobs:
   go-tag:
     name: Tag Go module
     runs-on: ubuntu-latest
+    needs: validate
     steps:
       - uses: actions/checkout@v4
 

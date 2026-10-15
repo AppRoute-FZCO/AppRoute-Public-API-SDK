@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/approute/public-api-sdk-go/model"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/model"
 )
 
 // SteamCurrencyResource provides access to Steam currency rate endpoints.

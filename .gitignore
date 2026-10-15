@@ -5,6 +5,10 @@
 *.swo
 *~
 
+# Root Composer distribution smoke checks
+/vendor/
+/composer.lock
+
 # OS
 .DS_Store
 Thumbs.db

@@ -6,4 +6,5 @@ type ProductType string
 const (
 	ProductVoucher     ProductType = "voucher"
 	ProductDirectTopup ProductType = "direct_topup"
+	ProductESIM        ProductType = "esim"
 )

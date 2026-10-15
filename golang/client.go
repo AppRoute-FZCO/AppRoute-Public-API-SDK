@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/approute/public-api-sdk-go/internal/transport"
-	"github.com/approute/public-api-sdk-go/resource"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/internal/transport"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/resource"
 )
 
 // DefaultBaseURL is the default AppRoute API base URL.

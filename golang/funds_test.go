@@ -7,11 +7,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	approute "github.com/approute/public-api-sdk-go"
-	"github.com/approute/public-api-sdk-go/apierror"
-	"github.com/approute/public-api-sdk-go/enum"
-	"github.com/approute/public-api-sdk-go/model"
-	"github.com/approute/public-api-sdk-go/resource"
+	approute "github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/apierror"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/enum"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/model"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/resource"
 )
 
 func TestFundsResource_Methods(t *testing.T) {
@@ -153,6 +153,7 @@ func TestFundsResource_GetInvoice(t *testing.T) {
 			inv.Status = enum.FundingSuccess
 			inv.ConfirmationsRequired = intPtr(20)
 			inv.Confirmations = intPtr(20)
+			inv.ExplorerURL = strPtr("https://tronscan.org/#/transaction/0xabc123")
 		})))
 	}))
 	defer srv.Close()
@@ -170,6 +171,10 @@ func TestFundsResource_GetInvoice(t *testing.T) {
 		t.Fatal("TxHash should not be nil")
 	}
 	assertEqual(t, "TxHash", *invoice.TxHash, "0xabc123")
+	if invoice.ExplorerURL == nil {
+		t.Fatal("ExplorerURL should not be nil")
+	}
+	assertEqual(t, "ExplorerURL", *invoice.ExplorerURL, "https://tronscan.org/#/transaction/0xabc123")
 }
 
 func TestFundsResource_CheckInvoice(t *testing.T) {

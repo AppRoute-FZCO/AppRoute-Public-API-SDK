@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	approute "github.com/approute/public-api-sdk-go"
+	approute "github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang"
 )
 
 func TestNewClient_DefaultFields(t *testing.T) {

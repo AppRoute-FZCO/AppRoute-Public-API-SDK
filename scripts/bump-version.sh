@@ -2,8 +2,8 @@
 set -euo pipefail
 
 # Usage: ./scripts/bump-version.sh 1.2.3
-# Updates version in all SDK package configs (Python, JS, PHP).
-# Go uses git tags — no file changes needed.
+# Updates package configs and the exported Go runtime version.
+# Go module publication also needs its subdirectory git tag.
 
 VERSION="${1:?Usage: $0 <version>  (e.g. 1.2.3)}"
 
@@ -26,14 +26,29 @@ npm version "$VERSION" --no-git-tag-version --allow-same-version
 echo "JavaScript: $VERSION"
 
 # PHP
-cd "$ROOT/php"
-tmp=$(mktemp)
-jq --arg v "$VERSION" '.version = $v' composer.json > "$tmp" && mv "$tmp" composer.json
+tmp=''
+trap 'if [[ -n "$tmp" ]]; then rm -f -- "$tmp"; fi' EXIT
+for manifest in "$ROOT/php/composer.json" "$ROOT/composer.json"; do
+  tmp=$(mktemp)
+  jq --arg v "$VERSION" '.version = $v' "$manifest" > "$tmp"
+  mv "$tmp" "$manifest"
+done
+tmp=''
 echo "PHP: $VERSION"
+
+# Go
+cat > "$ROOT/golang/version.go" <<EOF
+package approute
+
+// Version is the semantic version of this SDK.
+const Version = "$VERSION"
+EOF
+echo "Go: $VERSION"
 
 echo ""
 echo "All SDKs updated to v${VERSION}"
 echo "Next steps:"
-echo "  git add -A && git commit -m \"release: v${VERSION}\""
+echo "  git add python/approute/_version.py javascript/package.json javascript/package-lock.json php/composer.json composer.json golang/version.go"
+echo "  git commit -m \"release: v${VERSION}\""
 echo "  git tag v${VERSION}"
 echo "  git push origin main v${VERSION}"

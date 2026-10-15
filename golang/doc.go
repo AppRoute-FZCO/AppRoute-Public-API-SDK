@@ -6,8 +6,8 @@
 //
 // # Sub-packages
 //
-//   - [github.com/approute/public-api-sdk-go/enum] -- typed string constants
-//   - [github.com/approute/public-api-sdk-go/model] -- request / response structs
-//   - [github.com/approute/public-api-sdk-go/apierror] -- error types
-//   - [github.com/approute/public-api-sdk-go/resource] -- API resource types
+//   - [github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/enum] -- typed string constants
+//   - [github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/model] -- request / response structs
+//   - [github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/apierror] -- error types
+//   - [github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/resource] -- API resource types
 package approute
