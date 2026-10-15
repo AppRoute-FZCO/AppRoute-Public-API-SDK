@@ -11,10 +11,13 @@ type FieldError struct {
 
 // Envelope is the JSON shape shared by every API response.
 type Envelope struct {
-	Status  string          `json:"status"`
-	Code    string          `json:"code"`
-	Message string          `json:"message"`
-	TraceID string          `json:"traceId"`
-	Data    json.RawMessage `json:"data"`
-	Errors  []FieldError    `json:"errors,omitempty"`
+	Status        string          `json:"status"`
+	Code          string          `json:"code"`
+	Message       string          `json:"message"`
+	TraceID       string          `json:"traceId"`
+	Data          json.RawMessage `json:"data"`
+	Errors        []FieldError    `json:"errors,omitempty"`
+	StatusCode    *int            `json:"statusCode,omitempty"`
+	StatusMessage string          `json:"statusMessage,omitempty"`
+	ErrorCode     string          `json:"errorCode,omitempty"`
 }

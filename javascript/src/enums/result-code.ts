@@ -15,6 +15,8 @@ export const ResultCode = {
   INSUFFICIENT_FUNDS: "INSUFFICIENT_FUNDS",
   UPSTREAM_ERROR: "UPSTREAM_ERROR",
   INTERNAL_ERROR: "INTERNAL_ERROR",
+  API_KEY_LIMIT_EXCEEDED: "API_KEY_LIMIT_EXCEEDED",
+  PROVIDER_UNAVAILABLE: "PROVIDER_UNAVAILABLE",
 } as const;
 
 export type ResultCode = (typeof ResultCode)[keyof typeof ResultCode];

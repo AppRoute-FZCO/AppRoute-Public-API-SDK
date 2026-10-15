@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/approute/public-api-sdk-go/model"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/model"
 )
 
 // ── Pointer helpers ──────────────────────────────────────────────

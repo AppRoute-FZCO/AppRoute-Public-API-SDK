@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/approute/public-api-sdk-go/model"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/model"
 )
 
 // MaxLookupItems is the hard cap on the number of (serviceId, itemId) pairs

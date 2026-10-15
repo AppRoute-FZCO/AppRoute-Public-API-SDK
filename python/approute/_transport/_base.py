@@ -6,6 +6,23 @@ from approute.errors import FieldError, raise_for_code
 from approute.errors.base import AppRouteError
 
 _SUCCESS_CODES = {"OK", "ACCEPTED", "IDEMPOTENCY_REPLAY"}
+_STATUS_CODES = {
+    0: "OK",
+    1: "ACCEPTED",
+    2: "IDEMPOTENCY_REPLAY",
+    3: "VALIDATION_ERROR",
+    4: "UNAUTHORIZED",
+    5: "FORBIDDEN",
+    6: "NOT_FOUND",
+    7: "CONFLICT",
+    8: "LIMIT_REACHED",
+    9: "OUT_OF_STOCK",
+    10: "INSUFFICIENT_FUNDS",
+    11: "UPSTREAM_ERROR",
+    12: "INTERNAL_ERROR",
+    13: "API_KEY_LIMIT_EXCEEDED",
+    14: "PROVIDER_UNAVAILABLE",
+}
 
 DEFAULT_TIMEOUT = 30.0
 DEFAULT_MAX_RETRIES = 3
@@ -82,16 +99,38 @@ def handle_response(resp: _JsonResponse) -> Any:
     except Exception as exc:
         raise AppRouteError(f"Invalid JSON response (HTTP {resp.status_code})") from exc
 
+    if not isinstance(body, dict):
+        raise AppRouteError(f"Invalid API response envelope (HTTP {resp.status_code})")
+
+    api_status_code = None
+    if "statusCode" in body:
+        # A present current code is authoritative, including null/invalid values.
+        # bool is an int subclass in Python but is never an API status code.
+        if type(body["statusCode"]) is not int:
+            raise AppRouteError(f"Invalid API response envelope (HTTP {resp.status_code})")
+        api_status_code = body["statusCode"]
+        code = _STATUS_CODES.get(api_status_code, str(api_status_code))
+        message = body.get("statusMessage", "")
+    else:
+        legacy_code = body.get("code")
+        message = body.get("message", "")
+        if not isinstance(legacy_code, str) or not legacy_code:
+            raise AppRouteError(f"Invalid API response envelope (HTTP {resp.status_code})")
+        code = legacy_code
+
     body_snake = convert_keys_to_snake(body)
+    trace_id = body.get("traceId", "")
+    api_error_code = body.get("errorCode")
+    raw_errors = body.get("errors") or []
 
-    code = body_snake.get("code", "")
-    message = body_snake.get("message", "")
-    trace_id = body_snake.get("trace_id", "")
-
-    if code in _SUCCESS_CODES:
+    if (
+        200 <= resp.status_code < 300
+        and code in _SUCCESS_CODES
+        and not raw_errors
+        and not api_error_code
+    ):
         return body_snake.get("data")
 
-    raw_errors = body_snake.get("errors") or []
     field_errors = [
         FieldError(field=e.get("field", ""), code=e.get("code", ""), message=e.get("message", ""))
         for e in raw_errors
@@ -103,4 +142,6 @@ def handle_response(resp: _JsonResponse) -> Any:
         trace_id=trace_id,
         status_code=resp.status_code,
         errors=field_errors,
+        api_status_code=api_status_code,
+        api_error_code=api_error_code,
     )

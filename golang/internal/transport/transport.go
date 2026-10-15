@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -13,9 +14,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/approute/public-api-sdk-go/apierror"
-	"github.com/approute/public-api-sdk-go/enum"
-	"github.com/approute/public-api-sdk-go/model"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/apierror"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/enum"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/model"
 )
 
 // successCodes are the result codes that indicate a successful API response.
@@ -23,6 +24,25 @@ var successCodes = map[enum.ResultCode]struct{}{
 	enum.ResultOK:                {},
 	enum.ResultAccepted:          {},
 	enum.ResultIdempotencyReplay: {},
+}
+
+// statusCodes follows the append-only numeric Public API StatusCode contract.
+var statusCodes = map[int]enum.ResultCode{
+	0:  enum.ResultOK,
+	1:  enum.ResultAccepted,
+	2:  enum.ResultIdempotencyReplay,
+	3:  enum.ResultValidationError,
+	4:  enum.ResultUnauthorized,
+	5:  enum.ResultForbidden,
+	6:  enum.ResultNotFound,
+	7:  enum.ResultConflict,
+	8:  enum.ResultLimitReached,
+	9:  enum.ResultOutOfStock,
+	10: enum.ResultInsufficientFunds,
+	11: enum.ResultUpstreamError,
+	12: enum.ResultInternalError,
+	13: enum.ResultAPIKeyLimitExceeded,
+	14: enum.ResultProviderUnavailable,
 }
 
 // retryableStatusCodes are HTTP status codes eligible for automatic retry.
@@ -125,17 +145,44 @@ func (t *HttpTransport) Request(ctx context.Context, method, path string, params
 
 // handleResponse parses the envelope and either returns data or an error.
 func (t *HttpTransport) handleResponse(statusCode int, body []byte) (json.RawMessage, error) {
+	if !json.Valid(body) {
+		return nil, fmt.Errorf("approute: invalid JSON response (HTTP %d)", statusCode)
+	}
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(body, &fields); err != nil || fields == nil {
+		return nil, fmt.Errorf("approute: invalid API response envelope (HTTP %d)", statusCode)
+	}
 	var env model.Envelope
 	if err := json.Unmarshal(body, &env); err != nil {
-		return nil, fmt.Errorf("approute: invalid JSON response (HTTP %d): %w", statusCode, err)
+		return nil, fmt.Errorf("approute: invalid API response envelope (HTTP %d): %w", statusCode, err)
 	}
 
 	code := enum.ResultCode(env.Code)
-	if _, ok := successCodes[code]; ok {
+	message := env.Message
+	if _, present := fields["statusCode"]; present {
+		if env.StatusCode == nil {
+			return nil, fmt.Errorf("approute: invalid API response envelope (HTTP %d)", statusCode)
+		}
+		var known bool
+		code, known = statusCodes[*env.StatusCode]
+		if !known {
+			code = enum.ResultCode(strconv.Itoa(*env.StatusCode))
+		}
+		message = env.StatusMessage
+	} else if env.Code == "" {
+		return nil, fmt.Errorf("approute: invalid API response envelope (HTTP %d)", statusCode)
+	}
+	if _, ok := successCodes[code]; ok && statusCode >= 200 && statusCode < 300 && len(env.Errors) == 0 && env.ErrorCode == "" {
 		return env.Data, nil
 	}
 
-	return nil, apierror.RaiseForCode(env.Code, env.Message, env.TraceID, statusCode, env.Errors)
+	err := apierror.RaiseForCode(string(code), message, env.TraceID, statusCode, env.Errors)
+	var base *apierror.ApiError
+	if errors.As(err, &base) {
+		base.APIStatusCode = env.StatusCode
+		base.APIErrorCode = env.ErrorCode
+	}
+	return nil, err
 }
 
 // retryDelay computes the backoff duration for a given attempt, respecting

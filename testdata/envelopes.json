@@ -1,0 +1,155 @@
+[
+  {
+    "name": "current_success",
+    "httpStatus": 200,
+    "body": {"status":"SUCCESS","statusCode":0,"statusMessage":"OK","traceId":"wire-0","data":{"items":[]},"errors":null,"errorCode":null},
+    "data": {"items":[]}
+  },
+  {
+    "name": "current_accepted",
+    "httpStatus": 202,
+    "body": {"status":"IN_PROGRESS","statusCode":1,"statusMessage":"Accepted","traceId":"wire-1","data":{"id":"order-1"},"errors":null,"errorCode":null},
+    "data": {"id":"order-1"}
+  },
+  {
+    "name": "current_idempotency_replay",
+    "httpStatus": 200,
+    "body": {"status":"SUCCESS","statusCode":2,"statusMessage":"Replayed","traceId":"wire-2","data":{"id":"order-1"},"errors":null,"errorCode":null},
+    "data": {"id":"order-1"}
+  },
+  {
+    "name": "current_null_data",
+    "httpStatus": 200,
+    "body": {"status":"SUCCESS","statusCode":0,"statusMessage":"OK","traceId":"wire-null","data":null,"errors":null,"errorCode":null},
+    "data": null
+  },
+  {
+    "name": "current_validation",
+    "httpStatus": 422,
+    "body": {"status":"CANCELLED","statusCode":3,"statusMessage":"Invalid view","traceId":"wire-3","data":null,"errors":[{"field":"query.view","code":"INVALID_VALUE","message":"Choose compact or full"}],"errorCode":null},
+    "code": "VALIDATION_ERROR", "errorType": "Validation", "message": "Invalid view", "apiStatusCode": 3,
+    "errors": [{"field":"query.view","code":"INVALID_VALUE","message":"Choose compact or full"}]
+  },
+  {
+    "name": "current_unauthorized", "httpStatus": 401,
+    "body": {"status":"CANCELLED","statusCode":4,"statusMessage":"Invalid API key","traceId":"wire-4","data":null,"errors":null,"errorCode":null},
+    "code": "UNAUTHORIZED", "errorType": "Unauthorized", "message": "Invalid API key", "apiStatusCode": 4
+  },
+  {
+    "name": "current_forbidden", "httpStatus": 403,
+    "body": {"status":"CANCELLED","statusCode":5,"statusMessage":"Forbidden","traceId":"wire-5","data":null,"errors":null,"errorCode":null},
+    "code": "FORBIDDEN", "errorType": "Forbidden", "message": "Forbidden", "apiStatusCode": 5
+  },
+  {
+    "name": "current_not_found", "httpStatus": 404,
+    "body": {"status":"CANCELLED","statusCode":6,"statusMessage":"Product not found","traceId":"wire-6","data":null,"errors":null,"errorCode":null},
+    "code": "NOT_FOUND", "errorType": "NotFound", "message": "Product not found", "apiStatusCode": 6
+  },
+  {
+    "name": "current_conflict", "httpStatus": 409,
+    "body": {"status":"CANCELLED","statusCode":7,"statusMessage":"Conflict","traceId":"wire-7","data":null,"errors":null,"errorCode":null},
+    "code": "CONFLICT", "errorType": "Conflict", "message": "Conflict", "apiStatusCode": 7
+  },
+  {
+    "name": "current_rate_limit", "httpStatus": 429,
+    "body": {"status":"CANCELLED","statusCode":8,"statusMessage":"Try later","traceId":"wire-8","data":null,"errors":null,"errorCode":null},
+    "code": "LIMIT_REACHED", "errorType": "RateLimited", "message": "Try later", "apiStatusCode": 8
+  },
+  {
+    "name": "current_out_of_stock", "httpStatus": 422,
+    "body": {"status":"CANCELLED","statusCode":9,"statusMessage":"Out of stock","traceId":"wire-9","data":null,"errors":null,"errorCode":null},
+    "code": "OUT_OF_STOCK", "errorType": "OutOfStock", "message": "Out of stock", "apiStatusCode": 9
+  },
+  {
+    "name": "current_insufficient_funds", "httpStatus": 422,
+    "body": {"status":"CANCELLED","statusCode":10,"statusMessage":"Insufficient funds","traceId":"wire-10","data":null,"errors":null,"errorCode":null},
+    "code": "INSUFFICIENT_FUNDS", "errorType": "InsufficientFunds", "message": "Insufficient funds", "apiStatusCode": 10
+  },
+  {
+    "name": "current_upstream", "httpStatus": 502,
+    "body": {"status":"CANCELLED","statusCode":11,"statusMessage":"Upstream failure","traceId":"wire-11","data":null,"errors":null,"errorCode":null},
+    "code": "UPSTREAM_ERROR", "errorType": "Upstream", "message": "Upstream failure", "apiStatusCode": 11
+  },
+  {
+    "name": "current_internal", "httpStatus": 500,
+    "body": {"status":"CANCELLED","statusCode":12,"statusMessage":"Internal failure","traceId":"wire-12","data":null,"errors":null,"errorCode":null},
+    "code": "INTERNAL_ERROR", "errorType": "Internal", "message": "Internal failure", "apiStatusCode": 12
+  },
+  {
+    "name": "current_api_key_limit", "httpStatus": 409,
+    "body": {"status":"CANCELLED","statusCode":13,"statusMessage":"API key limit exceeded","traceId":"wire-13","data":null,"errors":null,"errorCode":"api_key_transaction_limit_exceeded"},
+    "code": "API_KEY_LIMIT_EXCEEDED", "errorType": "Conflict", "message": "API key limit exceeded", "apiStatusCode": 13,
+    "apiErrorCode": "api_key_transaction_limit_exceeded"
+  },
+  {
+    "name": "current_provider_unavailable", "httpStatus": 504,
+    "body": {"status":"CANCELLED","statusCode":14,"statusMessage":"Provider unavailable","traceId":"wire-14","data":null,"errors":null,"errorCode":"provider_unavailable"},
+    "code": "PROVIDER_UNAVAILABLE", "errorType": "Upstream", "message": "Provider unavailable", "apiStatusCode": 14,
+    "apiErrorCode": "provider_unavailable"
+  },
+  {
+    "name": "unknown_numeric_error", "httpStatus": 400,
+    "body": {"status":"CANCELLED","statusCode":99,"statusMessage":"New error","traceId":"wire-99","data":null,"errors":null,"errorCode":"new_error"},
+    "code": "99", "errorType": "Api", "message": "New error", "apiStatusCode": 99, "apiErrorCode": "new_error"
+  },
+  {
+    "name": "numeric_error_on_http_200", "httpStatus": 200,
+    "body": {"status":"CANCELLED","statusCode":6,"statusMessage":"Missing","traceId":"wire-http-200","data":{"id":"must-not-return"},"errors":null,"errorCode":null},
+    "code": "NOT_FOUND", "errorType": "NotFound", "message": "Missing", "apiStatusCode": 6
+  },
+  {
+    "name": "current_error_overrides_legacy_success", "httpStatus": 200,
+    "body": {"status":"CANCELLED","statusCode":3,"statusMessage":"Current error","code":"OK","message":"Stale success","traceId":"wire-mixed","data":{"id":"must-not-return"},"errors":null,"errorCode":null},
+    "code": "VALIDATION_ERROR", "errorType": "Validation", "message": "Current error", "apiStatusCode": 3
+  },
+  {
+    "name": "http_error_overrides_current_success", "httpStatus": 500,
+    "body": {"status":"SUCCESS","statusCode":0,"statusMessage":"Misleading success","traceId":"wire-http-error","data":{"id":"must-not-return"},"errors":null,"errorCode":null},
+    "code": "OK", "errorType": "Api", "message": "Misleading success", "apiStatusCode": 0
+  },
+  {
+    "name": "field_errors_prevent_success", "httpStatus": 200,
+    "body": {"status":"SUCCESS","statusCode":0,"statusMessage":"Invalid field","traceId":"wire-field-error","data":{"id":"must-not-return"},"errors":[{"field":"query.view","code":"INVALID_VALUE","message":"Choose compact or full"}],"errorCode":null},
+    "code": "OK", "errorType": "Api", "message": "Invalid field", "apiStatusCode": 0,
+    "errors": [{"field":"query.view","code":"INVALID_VALUE","message":"Choose compact or full"}]
+  },
+  {
+    "name": "machine_error_prevents_success", "httpStatus": 200,
+    "body": {"status":"SUCCESS","statusCode":0,"statusMessage":"Machine error","traceId":"wire-machine-error","data":{"id":"must-not-return"},"errors":null,"errorCode":"source_identity_unproven"},
+    "code": "OK", "errorType": "Api", "message": "Machine error", "apiStatusCode": 0, "apiErrorCode": "source_identity_unproven"
+  },
+  {
+    "name": "legacy_success", "httpStatus": 200,
+    "body": {"status":"completed","code":"OK","message":"Success","traceId":"wire-legacy","data":{"items":[]}},
+    "data": {"items":[]}
+  },
+  {
+    "name": "legacy_error", "httpStatus": 404,
+    "body": {"status":"cancelled","code":"NOT_FOUND","message":"Legacy missing","traceId":"wire-legacy-error","data":null,"errors":[]},
+    "code": "NOT_FOUND", "errorType": "NotFound", "message": "Legacy missing"
+  },
+  {
+    "name": "http_error_overrides_legacy_success", "httpStatus": 500,
+    "body": {"status":"completed","code":"OK","message":"Misleading legacy success","traceId":"wire-legacy-http-error","data":{"id":"must-not-return"}},
+    "code": "OK", "errorType": "Api", "message": "Misleading legacy success"
+  },
+  {
+    "name": "string_numeric_code_is_invalid", "httpStatus": 200,
+    "body": {"statusCode":"0","code":"OK","statusMessage":"Must not coerce","data":{"id":"must-not-return"}}, "invalid": true
+  },
+  {
+    "name": "null_numeric_code_is_invalid", "httpStatus": 200,
+    "body": {"statusCode":null,"code":"OK","statusMessage":"Must not default","data":{"id":"must-not-return"}}, "invalid": true
+  },
+  {
+    "name": "boolean_numeric_code_is_invalid", "httpStatus": 200,
+    "body": {"statusCode":false,"code":"OK","statusMessage":"Must not coerce","data":{"id":"must-not-return"}}, "invalid": true
+  },
+  {
+    "name": "fractional_numeric_code_is_invalid", "httpStatus": 200,
+    "body": {"statusCode":0.5,"code":"OK","statusMessage":"Must not truncate","data":{"id":"must-not-return"}}, "invalid": true
+  },
+  {"name":"missing_result_code_is_invalid","httpStatus":200,"body":{"data":{"id":"must-not-return"}},"invalid":true},
+  {"name":"null_envelope_is_invalid","httpStatus":200,"body":null,"invalid":true},
+  {"name":"array_envelope_is_invalid","httpStatus":200,"body":[],"invalid":true}
+]

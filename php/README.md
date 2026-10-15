@@ -13,6 +13,11 @@ the matching dashboard: `https://approute.io/dashboard` or
 composer require approute/public-api-sdk
 ```
 
+The package registry must index this repository's root `composer.json`, whose
+autoload map points to `php/src/`. The manifest in `php/` supports development
+from that subtree. Both share the same version and runtime requirements.
+See [release configuration](../RELEASING.md) for the Satis source requirement.
+
 ## Quick Start
 
 ```php

@@ -12,9 +12,13 @@ export interface FieldError {
  */
 export interface Envelope<T = unknown> {
   status: string;
-  code: string;
-  message: string;
+  statusCode?: number;
+  statusMessage?: string;
+  /** Legacy envelope fields, present only on older API deployments. */
+  code?: string;
+  message?: string;
   traceId?: string;
   data?: T;
-  errors?: FieldError[];
+  errors?: FieldError[] | null;
+  errorCode?: string | null;
 }

@@ -1,8 +1,8 @@
 # Catalog operations describe the shared view=compact|full query contract.
 # TODO(openapi-coverage): /services/{id}/stock and /orders paths remain
-# incomplete. Shared response envelopes still use the legacy code/message
-# format; the current API uses statusCode/statusMessage. Do not use this
-# file for client generation until that separate compatibility gap is fixed.
+# incomplete. Shared envelopes follow the current statusCode/statusMessage
+# contract; the transports also accept code/message from older deployments.
+# Do not use this partial endpoint inventory for full client generation.
 openapi: 3.1.0
 info:
   title: AppRoute Public API (Data Plane)
@@ -491,6 +491,21 @@ components:
         - IDEMPOTENCY_REPLAY
         - UPSTREAM_ERROR
         - INTERNAL_ERROR
+        - API_KEY_LIMIT_EXCEEDED
+        - PROVIDER_UNAVAILABLE
+
+    StatusCode:
+      type: integer
+      enum: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+      description: |
+        0 OK, 1 ACCEPTED, 2 IDEMPOTENCY_REPLAY, 3 VALIDATION_ERROR,
+        4 UNAUTHORIZED, 5 FORBIDDEN, 6 NOT_FOUND, 7 CONFLICT, 8 LIMIT_REACHED,
+        9 OUT_OF_STOCK, 10 INSUFFICIENT_FUNDS, 11 UPSTREAM_ERROR,
+        12 INTERNAL_ERROR, 13 API_KEY_LIMIT_EXCEEDED, 14 PROVIDER_UNAVAILABLE.
+
+    EnvelopeStatus:
+      type: string
+      enum: [SUCCESS, IN_PROGRESS, PARTIALLY_COMPLETED, CANCELLED]
 
     FieldErrorCode:
       type: string
@@ -508,22 +523,22 @@ components:
     EnvelopeBase:
       type: object
       additionalProperties: false
-      required: [status, code, message, traceId, data]
+      required: [status, statusCode, statusMessage, traceId, data]
       properties:
-        status: { $ref: "#/components/schemas/TransactionStatus" }
-        code: { $ref: "#/components/schemas/ResultCode" }
-        message: { type: string }
+        status: { $ref: "#/components/schemas/EnvelopeStatus" }
+        statusCode: { $ref: "#/components/schemas/StatusCode" }
+        statusMessage: { type: string }
         traceId: { type: string }
-        data: { nullable: true }
+        data: {}
         errors:
-          type: array
+          type: [array, "null"]
           items: { $ref: "#/components/schemas/FieldError" }
+        errorCode: { type: [string, "null"] }
 
     EnvelopeError:
       allOf:
         - $ref: "#/components/schemas/EnvelopeBase"
         - type: object
-          additionalProperties: false
           properties:
             data: { nullable: true, type: "null" }
 
@@ -967,7 +982,6 @@ components:
       allOf:
         - $ref: "#/components/schemas/EnvelopeBase"
         - type: object
-          additionalProperties: false
           properties:
             data: { $ref: "#/components/schemas/AccountListResponse" }
 
@@ -975,7 +989,6 @@ components:
       allOf:
         - $ref: "#/components/schemas/EnvelopeBase"
         - type: object
-          additionalProperties: false
           properties:
             data: { $ref: "#/components/schemas/AccountTransactionPage" }
 
@@ -983,7 +996,6 @@ components:
       allOf:
         - $ref: "#/components/schemas/EnvelopeBase"
         - type: object
-          additionalProperties: false
           properties:
             data: { $ref: "#/components/schemas/ProductListResponse" }
 
@@ -991,7 +1003,6 @@ components:
       allOf:
         - $ref: "#/components/schemas/EnvelopeBase"
         - type: object
-          additionalProperties: false
           properties:
             data: { $ref: "#/components/schemas/Product" }
 
@@ -999,7 +1010,6 @@ components:
       allOf:
         - $ref: "#/components/schemas/EnvelopeBase"
         - type: object
-          additionalProperties: false
           properties:
             data: { $ref: "#/components/schemas/ProductItem" }
 
@@ -1007,7 +1017,6 @@ components:
       allOf:
         - $ref: "#/components/schemas/EnvelopeBase"
         - type: object
-          additionalProperties: false
           properties:
             data: { $ref: "#/components/schemas/ItemLookupResponse" }
 
@@ -1015,7 +1024,6 @@ components:
       allOf:
         - $ref: "#/components/schemas/EnvelopeBase"
         - type: object
-          additionalProperties: false
           properties:
             data: { $ref: "#/components/schemas/ProductStockResponse" }
 
@@ -1023,7 +1031,6 @@ components:
       allOf:
         - $ref: "#/components/schemas/EnvelopeBase"
         - type: object
-          additionalProperties: false
           properties:
             data: { $ref: "#/components/schemas/PurchaseResponse" }
 
@@ -1031,7 +1038,6 @@ components:
       allOf:
         - $ref: "#/components/schemas/EnvelopeBase"
         - type: object
-          additionalProperties: false
           properties:
             data: { $ref: "#/components/schemas/TransactionStatusResponse" }
 
@@ -1039,7 +1045,6 @@ components:
       allOf:
         - $ref: "#/components/schemas/EnvelopeBase"
         - type: object
-          additionalProperties: false
           properties:
             data: { $ref: "#/components/schemas/TransactionListResponse" }
 
@@ -1047,7 +1052,6 @@ components:
       allOf:
         - $ref: "#/components/schemas/EnvelopeBase"
         - type: object
-          additionalProperties: false
           properties:
             data: { $ref: "#/components/schemas/FundingMethodsResponse" }
 
@@ -1055,7 +1059,6 @@ components:
       allOf:
         - $ref: "#/components/schemas/EnvelopeBase"
         - type: object
-          additionalProperties: false
           properties:
             data: { $ref: "#/components/schemas/FundingInvoice" }
 
@@ -1063,7 +1066,6 @@ components:
       allOf:
         - $ref: "#/components/schemas/EnvelopeBase"
         - type: object
-          additionalProperties: false
           properties:
             data: { $ref: "#/components/schemas/FundingInvoiceList" }
 
@@ -1071,7 +1073,6 @@ components:
       allOf:
         - $ref: "#/components/schemas/EnvelopeBase"
         - type: object
-          additionalProperties: false
           properties:
             data: { $ref: "#/components/schemas/FundingInvoiceTimeLeft" }
 
@@ -1079,7 +1080,6 @@ components:
       allOf:
         - $ref: "#/components/schemas/EnvelopeBase"
         - type: object
-          additionalProperties: false
           properties:
             data: { $ref: "#/components/schemas/TonDepositState" }
 
@@ -1087,6 +1087,5 @@ components:
       allOf:
         - $ref: "#/components/schemas/EnvelopeBase"
         - type: object
-          additionalProperties: false
           properties:
             data: { $ref: "#/components/schemas/BybitState" }

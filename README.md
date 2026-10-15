@@ -9,7 +9,7 @@ Official SDK libraries for [AppRoute Public API](https://approute.io) — availa
 | [Python](./python/) | `approute-public-api-sdk` | Python 3.10+ |
 | [JavaScript/TypeScript](./javascript/) | `@approute/public-api-sdk` | Node.js 18+ |
 | [PHP](./php/) | `approute/public-api-sdk` | PHP 8.1+ |
-| [Go](./golang/) | `github.com/approute/public-api-sdk-go` | Go 1.21+ |
+| [Go](./golang/) | `github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang` | Go 1.24+ |
 
 ## Quick Start
 
@@ -66,18 +66,17 @@ forwarded consistently. No item image or platform source is introduced here.
 
 **Deployment migration:** the API's compact default changes the response for
 existing callers, including older SDK versions, when the API is deployed.
-Deploy Shop first. After resolving the SDK release blocker below, release the
-compatible SDKs and migrate affected callers to explicit `view=full` before
+Deploy Shop first. Release the compatible SDKs and migrate affected callers to explicit `view=full` before
 deploying Public API's compact default. The previous Public API ignores this
 query parameter, so callers can stage it in advance. SDK 1.2.0 adds optional
 arguments and fields without changing existing call syntax; the Go release
-uses the existing module path and `golang/v1.2.0` tag.
+uses `github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang` and the
+`golang/v1.2.0` tag. Go consumers must update imports from the previously
+documented, unavailable `github.com/approute/public-api-sdk-go` source.
 
-**Release blocker:** the current SDK transports expect the legacy string
-`code`/`message` envelope. The current Public API returns numeric
-`statusCode`/`statusMessage`. That existing incompatibility must be resolved and
-verified in all four languages before publishing this SDK release. The catalog
-method tests do not establish compatibility with the current API envelope.
+All four transports support the current numeric `statusCode`/`statusMessage`
+envelope and the legacy `code`/`message` envelope. See [release configuration](./RELEASING.md)
+for registry and package source requirements before publishing.
 
 ## Authentication
 
@@ -89,13 +88,27 @@ All API responses use a unified envelope format. The SDKs automatically:
 - Unwrap successful responses, returning just the `data` field
 - Throw/return typed errors for failed responses with `code`, `message`, `traceId`, and field-level `errors`
 
+Current `statusCode` values 0 (`OK`), 1 (`ACCEPTED`) and 2
+(`IDEMPOTENCY_REPLAY`) succeed only with HTTP 2xx and no field or machine error.
+A present numeric code takes precedence over legacy fields. Unknown numeric
+codes remain API errors; malformed codes are rejected instead of coerced to 0.
+
+Existing SDK error code and HTTP status properties keep their meanings. Errors
+also retain the numeric API code as `apiStatusCode` and the wire `errorCode` as
+`apiErrorCode` (`api_status_code`/`api_error_code` in Python,
+`APIStatusCode`/`APIErrorCode` in Go). In PHP, `errorCode` remains the existing
+symbolic result code. Code 13 maps to the conflict error type; code 14 maps to
+the upstream error type. These codes are distinct from a rate limit (code 8).
+
 ## Changelog
 
 ### 1.2.0 (unreleased)
 
 Adds compact/full catalog views in all four SDKs, optional product presentation
 and quantity-mode metadata, the eSIM product type, and nullable
-`FundingInvoice.explorerUrl`. See the catalog migration and release blocker above.
+`FundingInvoice.explorerUrl`. Fixes current API response envelopes in all four
+transports, aligns Go module discovery and adds a root Composer distribution
+manifest. See the catalog and Go import migration notes above.
 
 ### 1.1.0
 

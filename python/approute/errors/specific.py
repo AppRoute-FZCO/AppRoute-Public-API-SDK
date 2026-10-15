@@ -54,6 +54,8 @@ _CODE_TO_ERROR: dict[str, type[ApiError]] = {
     "INSUFFICIENT_FUNDS": InsufficientFundsError,
     "UPSTREAM_ERROR": UpstreamError,
     "INTERNAL_ERROR": InternalError,
+    "API_KEY_LIMIT_EXCEEDED": ConflictError,
+    "PROVIDER_UNAVAILABLE": UpstreamError,
 }
 
 
@@ -63,6 +65,8 @@ def raise_for_code(
     trace_id: str,
     status_code: int,
     errors: list[FieldError] | None = None,
+    api_status_code: int | None = None,
+    api_error_code: str | None = None,
 ) -> None:
     cls = _CODE_TO_ERROR.get(code, ApiError)
     raise cls(
@@ -71,4 +75,6 @@ def raise_for_code(
         trace_id=trace_id,
         status_code=status_code,
         errors=errors or [],
+        api_status_code=api_status_code,
+        api_error_code=api_error_code,
     )

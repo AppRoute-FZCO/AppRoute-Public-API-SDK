@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	"github.com/approute/public-api-sdk-go/enum"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/enum"
 )
 
 // FundingMethod describes one available deposit method.

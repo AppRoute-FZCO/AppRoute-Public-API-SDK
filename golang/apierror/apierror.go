@@ -4,19 +4,21 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/approute/public-api-sdk-go/enum"
-	"github.com/approute/public-api-sdk-go/model"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/enum"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/model"
 )
 
 // ApiError is the base error type for all non-success API responses.
 // Callers can use errors.As to narrow to a more specific sub-type
 // (e.g. *ValidationError, *NotFoundError).
 type ApiError struct {
-	Code       string             `json:"code"`
-	Message    string             `json:"message"`
-	TraceID    string             `json:"traceId"`
-	StatusCode int                `json:"-"`
-	Errors     []model.FieldError `json:"errors,omitempty"`
+	Code          string             `json:"code"`
+	Message       string             `json:"message"`
+	TraceID       string             `json:"traceId"`
+	StatusCode    int                `json:"-"`
+	Errors        []model.FieldError `json:"errors,omitempty"`
+	APIStatusCode *int               `json:"apiStatusCode,omitempty"`
+	APIErrorCode  string             `json:"apiErrorCode,omitempty"`
 }
 
 // Error implements the error interface.
@@ -110,7 +112,7 @@ func RaiseForCode(code, message, traceID string, statusCode int, errors []model.
 		return &ForbiddenError{base}
 	case enum.ResultNotFound:
 		return &NotFoundError{base}
-	case enum.ResultConflict:
+	case enum.ResultConflict, enum.ResultAPIKeyLimitExceeded:
 		return &ConflictError{base}
 	case enum.ResultLimitReached:
 		return &RateLimitedError{base}
@@ -118,7 +120,7 @@ func RaiseForCode(code, message, traceID string, statusCode int, errors []model.
 		return &OutOfStockError{base}
 	case enum.ResultInsufficientFunds:
 		return &InsufficientFundsError{base}
-	case enum.ResultUpstreamError:
+	case enum.ResultUpstreamError, enum.ResultProviderUnavailable:
 		return &UpstreamError{base}
 	case enum.ResultInternalError:
 		return &InternalServerError{base}

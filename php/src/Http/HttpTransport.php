@@ -15,6 +15,23 @@ use GuzzleHttp\Exception\RequestException;
 class HttpTransport implements TransportInterface
 {
     private const SUCCESS_CODES = ['OK', 'ACCEPTED', 'IDEMPOTENCY_REPLAY'];
+    private const STATUS_CODES = [
+        0 => 'OK',
+        1 => 'ACCEPTED',
+        2 => 'IDEMPOTENCY_REPLAY',
+        3 => 'VALIDATION_ERROR',
+        4 => 'UNAUTHORIZED',
+        5 => 'FORBIDDEN',
+        6 => 'NOT_FOUND',
+        7 => 'CONFLICT',
+        8 => 'LIMIT_REACHED',
+        9 => 'OUT_OF_STOCK',
+        10 => 'INSUFFICIENT_FUNDS',
+        11 => 'UPSTREAM_ERROR',
+        12 => 'INTERNAL_ERROR',
+        13 => 'API_KEY_LIMIT_EXCEEDED',
+        14 => 'PROVIDER_UNAVAILABLE',
+    ];
     private const RETRYABLE_STATUS_CODES = [429, 500, 502, 503, 504];
     private const BACKOFF_BASE = 1.0;
 
@@ -95,20 +112,38 @@ class HttpTransport implements TransportInterface
     {
         $body = json_decode($rawBody, true);
 
-        if (!is_array($body)) {
+        if (json_last_error() !== JSON_ERROR_NONE) {
             throw new AppRouteException("Invalid JSON response (HTTP {$statusCode})");
         }
+        if (!is_array($body) || array_is_list($body)) {
+            throw new AppRouteException("Invalid API response envelope (HTTP {$statusCode})");
+        }
 
-        $code = $body['code'] ?? '';
-        $message = $body['message'] ?? '';
+        $apiStatusCode = null;
+        if (array_key_exists('statusCode', $body)) {
+            if (!is_int($body['statusCode'])) {
+                throw new AppRouteException("Invalid API response envelope (HTTP {$statusCode})");
+            }
+            $apiStatusCode = $body['statusCode'];
+            $code = self::STATUS_CODES[$apiStatusCode] ?? (string) $apiStatusCode;
+            $message = $body['statusMessage'] ?? '';
+        } else {
+            $code = $body['code'] ?? null;
+            $message = $body['message'] ?? '';
+            if (!is_string($code) || $code === '') {
+                throw new AppRouteException("Invalid API response envelope (HTTP {$statusCode})");
+            }
+        }
         $traceId = $body['traceId'] ?? '';
+        $apiErrorCode = $body['errorCode'] ?? null;
+        $rawErrors = $body['errors'] ?? [];
 
-        if (in_array($code, self::SUCCESS_CODES, true)) {
+        if ($statusCode >= 200 && $statusCode < 300 && in_array($code, self::SUCCESS_CODES, true) && !$rawErrors && !$apiErrorCode) {
             return $body['data'] ?? null;
         }
 
         $errors = [];
-        foreach ($body['errors'] ?? [] as $err) {
+        foreach ($rawErrors as $err) {
             $errors[] = [
                 'field' => $err['field'] ?? '',
                 'code' => $err['code'] ?? '',
@@ -116,7 +151,7 @@ class HttpTransport implements TransportInterface
             ];
         }
 
-        throw ApiException::fromCode($code, $message, $traceId, $statusCode, $errors);
+        throw ApiException::fromCode($code, $message, $traceId, $statusCode, $errors, $apiStatusCode, $apiErrorCode);
     }
 
     /**

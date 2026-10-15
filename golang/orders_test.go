@@ -7,10 +7,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	approute "github.com/approute/public-api-sdk-go"
-	"github.com/approute/public-api-sdk-go/apierror"
-	"github.com/approute/public-api-sdk-go/model"
-	"github.com/approute/public-api-sdk-go/resource"
+	approute "github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/apierror"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/model"
+	"github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/resource"
 )
 
 func TestOrdersResource_Create(t *testing.T) {

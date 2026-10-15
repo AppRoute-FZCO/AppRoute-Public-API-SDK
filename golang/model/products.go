@@ -1,6 +1,6 @@
 package model
 
-import "github.com/approute/public-api-sdk-go/enum"
+import "github.com/AppRoute-FZCO/AppRoute-Public-API-SDK/golang/enum"
 
 // ProductFieldOption describes one selectable value within a product field.
 type ProductFieldOption struct {
